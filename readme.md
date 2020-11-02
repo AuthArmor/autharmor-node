@@ -8,7 +8,7 @@ If you'd like a more advanced and flexible interface for using the AuthArmor API
 
 ## 🏁 Installation
 
-You can integrate the AuthArmor SDK into your website by installing and importing our NPM package:
+You can integrate the AuthArmor SDK into your backend by installing and importing our NPM package:
 
 ```bash
 # Via NPM
