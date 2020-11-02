@@ -33,7 +33,7 @@ const AuthArmor = new AuthArmorSDK({
 
 ### How Does it work?
 
-For information regarding how AuthArmor works and its concepts, please visit the [documentation site](https://docs.autharmor.com)
+For information regarding how AuthArmor works and its concepts, please visit the [Documentation site](https://docs.autharmor.com)
 
 ## 🌏 HTTP Routes and Schema
 
