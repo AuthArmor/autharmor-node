@@ -14,7 +14,7 @@ const defaultAuthConfig: Partial<AuthSettings> = {
 interface SDKSettings {
   clientId: string;
   clientSecret: string;
-  server: HTTPServer | HTTPSServer | undefined;
+  server?: HTTPServer | HTTPSServer;
   polling: boolean;
 }
 
