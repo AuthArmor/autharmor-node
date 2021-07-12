@@ -8,6 +8,9 @@
     "type": "git",
     "url": "https://github.com/AuthArmor/autharmor-node-sdk.git"
   },
+  "files": [
+    "./dist/**/*"
+  ],
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w"
