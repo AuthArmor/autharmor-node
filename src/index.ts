@@ -242,7 +242,7 @@ class AuthArmorSDK {
     this.pollRequest({ request, onAuthSuccess });
   }
 
-  public middleware({ onAuthSuccess }: MiddlewareArgs) {
+  public routes({ onAuthSuccess }: MiddlewareArgs) {
     const router = Express.Router();
 
     router.use(Express.json());
@@ -334,27 +334,29 @@ class AuthArmorSDK {
       }
     );
 
-    return (req: Request, res: Response, next: NextFunction) => {
-      const token = req.headers.authorization;
+    return router;
+  }
 
-      if (!token) {
-        return next();
-      }
+  public middleware(req: Request, res: Response, next: NextFunction) {
+    const token = req.headers.authorization;
 
-      const verified = JWT.verify(token, this.secret) as JWT.JwtPayload;
-
-      if (!verified.autharmor || verified.type !== "user") {
-        return next();
-      }
-
-      res.locals.authArmorUser = {
-        nickname: verified.nickname,
-        authorized: verified.authorized,
-        expiresIn: verified.exp
-      };
-
+    if (!token) {
       return next();
+    }
+
+    const verified = JWT.verify(token, this.secret) as JWT.JwtPayload;
+
+    if (!verified.autharmor || verified.type !== "user") {
+      return next();
+    }
+
+    res.locals.authArmorUser = {
+      nickname: verified.nickname,
+      authorized: verified.authorized,
+      expiresIn: verified.exp
     };
+
+    return next();
   }
 
   public async authenticate({
