@@ -3,6 +3,8 @@ import QueryString from "querystring";
 import WebSocket from "ws";
 import { Server as HTTPServer } from "http";
 import { Server as HTTPSServer } from "https";
+import Express, { NextFunction, Request, Response } from "express";
+import JWT from "jsonwebtoken";
 import config from "./config";
 
 const defaultAuthConfig: Partial<AuthSettings> = {
@@ -11,11 +13,24 @@ const defaultAuthConfig: Partial<AuthSettings> = {
   short_msg: "Someone is trying to login using your Auth Armor account"
 };
 
+interface SuccessCallbackArgs {
+  nickname: string;
+  success: boolean;
+  status: string;
+  rawResponse: any;
+}
+
+interface MiddlewareArgs {
+  onAuthSuccess: (args: SuccessCallbackArgs) => any;
+}
+
 interface SDKSettings {
   clientId: string;
   clientSecret: string;
+  authTimeout?: number;
   server?: HTTPServer | HTTPSServer;
   polling: boolean;
+  secret: string;
 }
 
 interface WebsocketListeners {
@@ -56,31 +71,61 @@ interface AuthRequest {
   push_message_sent: boolean;
 }
 
+interface AuthenticateArgs {
+  config: Partial<AuthSettings>;
+  onAuthSuccess: (args: SuccessCallbackArgs) => any;
+}
+
+interface RequestPollArgs {
+  request: AuthRequest;
+  onAuthSuccess: (args: SuccessCallbackArgs) => any;
+}
+
 class AuthArmorSDK {
   private clientId: string = "";
   private clientSecret: string = "";
   private tokenExpiration: number = Date.now();
   private token: string | null = null;
+  private secret: string = "";
+  private authTimeout: number = 60;
   private websockets: WebsocketListeners = {};
+  private onAuthSuccess: (args: SuccessCallbackArgs) => any = () => {};
 
   constructor({
     clientId,
     clientSecret,
     server,
-    polling = false
+    authTimeout = 60,
+    polling = false,
+    secret
   }: SDKSettings) {
-    this.init({ clientId, clientSecret, server, polling });
+    if (!secret) {
+      throw new Error(
+        "Please specify a value in the secret property when initializing the AuthArmor SDK"
+      );
+    }
+
+    this.authTimeout = authTimeout;
+
+    this.onAuthSuccess = () => {};
+    this.init({ clientId, clientSecret, server, polling, secret });
   }
 
   private init({
     clientId,
     clientSecret,
     server,
-    polling = false
+    polling,
+    secret
   }: SDKSettings) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
+    this.secret = secret;
 
+    this.initUpdateConnection({ server, polling });
+  }
+
+  private initUpdateConnection({ server, polling }: Partial<SDKSettings>) {
     if (!polling && server) {
       const socketServer = new WebSocket.Server({
         server,
@@ -100,8 +145,8 @@ class AuthArmorSDK {
             if (parsedData.event === "subscribe:auth") {
               this.websockets = {
                 ...this.websockets,
-                [parsedData.data.requestId]: [
-                  ...this.websockets[parsedData.data.authId],
+                [parsedData.data.id]: [
+                  ...(this.websockets[parsedData.data.id] ?? []),
                   socket
                 ]
               };
@@ -138,12 +183,50 @@ class AuthArmorSDK {
     }
   }
 
-  private async pollRequest(request: AuthRequest): Promise<void> {
+  private async pollRequest({
+    request,
+    onAuthSuccess
+  }: RequestPollArgs): Promise<void> {
     const { data } = await Http.get(
       `${config.apiUrl}/auth/request/${request.auth_request_id}`
     );
 
     if (data.auth_request_status_name !== "Pending") {
+      if (data.auth_response.authorized) {
+        const authorized = data.auth_response.authorized;
+        const nickname =
+          data.auth_response.auth_details.request_details.auth_profile_details
+            .nickname;
+        const responseData = await (onAuthSuccess || this.onAuthSuccess)?.({
+          nickname,
+          success: authorized,
+          status: data.auth_request_status_name,
+          rawResponse: data
+        });
+
+        const token = JWT.sign(
+          {
+            nickname,
+            authorized,
+            type: "user",
+            autharmor: true
+          },
+          this.secret
+        );
+
+        this.emitSockets({
+          id: request.auth_request_id,
+          data: {
+            event: "auth:response",
+            data: {
+              response: data,
+              token
+            },
+            metadata: responseData
+          }
+        });
+      }
+
       this.emitSockets({
         id: request.auth_request_id,
         data: {
@@ -156,17 +239,173 @@ class AuthArmorSDK {
 
     await this.wait(500);
 
-    this.pollRequest(request);
+    this.pollRequest({ request, onAuthSuccess });
   }
 
-  public async authenticate(authConfig: Partial<AuthSettings>) {
+  public middleware({ onAuthSuccess }: MiddlewareArgs) {
+    const router = Express.Router();
+
+    router.use(Express.json());
+
+    router.get("/me", async (req, res) => {
+      try {
+        const token = req.headers.authorization;
+
+        if (!token) {
+          res.status(400).json({
+            message: "Please specify a valid Authorization token",
+            success: false
+          });
+          return;
+        }
+
+        const verified = JWT.verify(token, this.secret) as JWT.JwtPayload;
+
+        if (!verified.autharmor) {
+          res.status(400).json({
+            message: `Non-autharmor token provided`,
+            success: false
+          });
+          return;
+        }
+
+        if (verified.type !== "user") {
+          res.status(400).json({
+            message: `The provided token has an invalid type: ${verified.type}`,
+            success: false
+          });
+          return;
+        }
+
+        res.status(400).json({
+          data: {
+            nickname: verified.nickname,
+            authorized: verified.authorized,
+            expiresIn: verified.exp
+          },
+          success: true
+        });
+      } catch (err) {
+        res.status(400).json({
+          message: err.message,
+          success: false
+        });
+      }
+    });
+
+    router.post(
+      "/authenticate",
+      async (req: Request<any, any, Partial<AuthSettings>>, res) => {
+        const authConfig = req.body;
+        const response = await this.authenticate({
+          config: {
+            ...defaultAuthConfig,
+            timeout_in_seconds: this.authTimeout,
+            action_name:
+              authConfig.action_name ?? defaultAuthConfig.action_name,
+            nickname: authConfig.nickname,
+            origin_location_data: authConfig.origin_location_data,
+            short_msg: authConfig.short_msg ?? defaultAuthConfig.short_msg,
+            nonce: authConfig.nonce
+          },
+          onAuthSuccess
+        });
+
+        res.status(200).json(response);
+      }
+    );
+
+    router.post(
+      "/invite",
+      async (req: Request<any, any, InviteSettings>, res) => {
+        try {
+          const response = await this.invite(req.body);
+
+          res.json({
+            data: response,
+            success: true
+          });
+        } catch (err) {
+          res.status(400).json({
+            message: err.message,
+            success: false
+          });
+        }
+      }
+    );
+
+    return (req: Request, res: Response, next: NextFunction) => {
+      const token = req.headers.authorization;
+
+      if (!token) {
+        return next();
+      }
+
+      const verified = JWT.verify(token, this.secret) as JWT.JwtPayload;
+
+      if (!verified.autharmor || verified.type !== "user") {
+        return next();
+      }
+
+      res.locals.authArmorUser = {
+        nickname: verified.nickname,
+        authorized: verified.authorized,
+        expiresIn: verified.exp
+      };
+
+      return next();
+    };
+  }
+
+  public async authenticate({
+    config: authConfig,
+    onAuthSuccess
+  }: AuthenticateArgs) {
     try {
+      const mergedAuthConfig = {
+        ...defaultAuthConfig,
+        ...authConfig
+      };
       await this.verifyToken();
       const { data }: AxiosResponse<AuthRequest> = await Http.post(
         `${config.apiUrl}/auth/request/async`,
+        mergedAuthConfig,
         {
-          ...defaultAuthConfig,
-          ...authConfig
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        }
+      );
+
+      const requestToken = JWT.sign(
+        {
+          requestId: data.auth_request_id,
+          type: "request",
+          autharmor: true
+        },
+        this.secret,
+        {
+          expiresIn:
+            Date.now() + (mergedAuthConfig.timeout_in_seconds ?? 60) * 1000
+        }
+      );
+
+      this.pollRequest({ request: data, onAuthSuccess });
+
+      return { authRequest: data, requestToken };
+    } catch (err) {
+      throw err.response?.data ?? err;
+    }
+  }
+
+  public async invite({ nickname, referenceId }: InviteSettings) {
+    try {
+      await this.verifyToken();
+      const { data } = await Http.post(
+        `${config.apiUrl}/invite/request`,
+        {
+          nickname: nickname,
+          referenceId: referenceId
         },
         {
           headers: {
@@ -175,30 +414,10 @@ class AuthArmorSDK {
         }
       );
 
-      this.pollRequest(data);
-
       return data;
     } catch (err) {
-      throw err.response.data;
+      throw err.response?.data ?? err;
     }
-  }
-
-  public async invite({ nickname, referenceId }: InviteSettings) {
-    await this.verifyToken();
-    const { data } = await Http.post(
-      `${config.apiUrl}/invite/request`,
-      {
-        nickname: nickname,
-        referenceId: referenceId
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${this.token}`
-        }
-      }
-    );
-
-    return data;
   }
 }
 
