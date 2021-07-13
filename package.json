@@ -1,6 +1,6 @@
 {
   "name": "autharmor-node-sdk",
-  "version": "2.0.0-alpha.7",
+  "version": "2.0.0-alpha.9",
   "main": "dist/index.js",
   "license": "MIT",
   "homepage": "https://github.com/AuthArmor/autharmor-node-sdk#readme",
