@@ -10,7 +10,9 @@ import config from "./config";
 const defaultAuthConfig: Partial<AuthSettings> = {
   timeout_in_seconds: 60,
   action_name: "Login",
-  short_msg: "Someone is trying to login using your Auth Armor account"
+  short_msg: "Someone is trying to login using your Auth Armor account",
+  send_push: true,
+  use_visual_verify: false
 };
 
 interface SuccessCallbackArgs {
@@ -29,7 +31,7 @@ interface SDKSettings {
   clientSecret: string;
   authTimeout?: number;
   server?: HTTPServer | HTTPSServer;
-  polling: boolean;
+  polling?: boolean;
   secret: string;
 }
 
@@ -59,6 +61,8 @@ interface AuthSettings {
   origin_location_data: LocationData;
   action_name: string;
   short_msg: string;
+  send_push: boolean;
+  use_visual_verify: boolean;
 }
 
 interface AuthRequest {
@@ -81,7 +85,7 @@ interface RequestPollArgs {
   onAuthSuccess: (args: SuccessCallbackArgs) => any;
 }
 
-class AuthArmorSDK {
+export class AuthArmorSDK {
   private clientId: string = "";
   private clientSecret: string = "";
   private tokenExpiration: number = Date.now();
@@ -170,7 +174,7 @@ class AuthArmorSDK {
 
   private async verifyToken() {
     if (this.tokenExpiration <= Date.now() + 2 * 60 * 1000) {
-      const { data: accessToken } = await Http.post(
+      const { data } = await Http.post(
         `${config.loginURL}/connect/token`,
         QueryString.stringify({
           client_id: this.clientId,
@@ -178,7 +182,7 @@ class AuthArmorSDK {
           grant_type: "client_credentials"
         })
       );
-      this.token = accessToken;
+      this.token = data.access_token;
       this.tokenExpiration = Date.now() + 8 * 60 * 1000;
     }
   }
@@ -187,9 +191,17 @@ class AuthArmorSDK {
     request,
     onAuthSuccess
   }: RequestPollArgs): Promise<void> {
+    await this.verifyToken();
     const { data } = await Http.get(
-      `${config.apiUrl}/auth/request/${request.auth_request_id}`
+      `${config.apiUrl}/auth/request/${request.auth_request_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${this.token}`
+        }
+      }
     );
+
+    console.log(data);
 
     if (data.auth_request_status_name !== "Pending") {
       if (data.auth_response.authorized) {
@@ -296,22 +308,31 @@ class AuthArmorSDK {
     router.post(
       "/authenticate",
       async (req: Request<any, any, Partial<AuthSettings>>, res) => {
-        const authConfig = req.body;
-        const response = await this.authenticate({
-          config: {
-            ...defaultAuthConfig,
-            timeout_in_seconds: this.authTimeout,
-            action_name:
-              authConfig.action_name ?? defaultAuthConfig.action_name,
-            nickname: authConfig.nickname,
-            origin_location_data: authConfig.origin_location_data,
-            short_msg: authConfig.short_msg ?? defaultAuthConfig.short_msg,
-            nonce: authConfig.nonce
-          },
-          onAuthSuccess
-        });
+        try {
+          const authConfig = req.body;
+          const response = await this.authenticate({
+            config: {
+              ...defaultAuthConfig,
+              timeout_in_seconds: this.authTimeout,
+              action_name:
+                authConfig.action_name ?? defaultAuthConfig.action_name,
+              nickname: authConfig.nickname,
+              origin_location_data: authConfig.origin_location_data,
+              short_msg: authConfig.short_msg ?? defaultAuthConfig.short_msg,
+              nonce: authConfig.nonce,
+              send_push: authConfig.send_push,
+              use_visual_verify: authConfig.use_visual_verify
+            },
+            onAuthSuccess
+          });
 
-        res.status(200).json(response);
+          res.status(200).json(response);
+        } catch (err) {
+          res.status(400).json({
+            message: err.message ?? err.error ?? err,
+            success: false
+          });
+        }
       }
     );
 
@@ -422,5 +443,3 @@ class AuthArmorSDK {
     }
   }
 }
-
-export default AuthArmorSDK;
