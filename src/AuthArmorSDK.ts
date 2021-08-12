@@ -191,40 +191,55 @@ export default class AuthArmorSDK {
     request,
     onAuthSuccess
   }: RequestPollArgs): Promise<void> {
-    await this.verifyToken();
-    const { data } = await Http.get(
-      `${config.apiUrl}/auth/request/${request.auth_request_id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${this.token}`
+    try {
+      await this.verifyToken();
+      const { data } = await Http.get(
+        `${config.apiUrl}/auth/request/${request.auth_request_id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
         }
-      }
-    );
+      );
 
-    console.log(data);
-
-    if (data.auth_request_status_name !== "Pending") {
-      if (data.auth_response.authorized) {
-        const authorized = data.auth_response.authorized;
-        const nickname =
-          data.auth_response.auth_details.request_details.auth_profile_details
-            .nickname;
-        const responseData = await (onAuthSuccess || this.onAuthSuccess)?.({
-          nickname,
-          success: authorized,
-          status: data.auth_request_status_name,
-          rawResponse: data
-        });
-
-        const token = JWT.sign(
-          {
+      if (data.auth_request_status_name !== "Pending") {
+        if (data.auth_response.authorized) {
+          const authorized = data.auth_response.authorized;
+          const nickname =
+            data.auth_response.auth_details.request_details.auth_profile_details
+              .nickname;
+          const responseData = await (onAuthSuccess || this.onAuthSuccess)?.({
             nickname,
-            authorized,
-            type: "user",
-            autharmor: true
-          },
-          this.secret
-        );
+            success: authorized,
+            status: data.auth_request_status_name,
+            rawResponse: data
+          });
+
+          const token = JWT.sign(
+            {
+              nickname,
+              authorized,
+              type: "user",
+              autharmor: true
+            },
+            this.secret
+          );
+
+          this.emitSockets({
+            id: request.auth_request_id,
+            data: {
+              event: "auth:response",
+              data: {
+                response: data,
+                token,
+                nickname,
+                authorized,
+                status: data.auth_request_status_name
+              },
+              metadata: responseData
+            }
+          });
+        }
 
         this.emitSockets({
           id: request.auth_request_id,
@@ -232,26 +247,29 @@ export default class AuthArmorSDK {
             event: "auth:response",
             data: {
               response: data,
-              token
-            },
-            metadata: responseData
+              status: data.auth_request_status_name,
+              authorized: false
+            }
           }
         });
+        return;
       }
 
+      await this.wait(500);
+
+      this.pollRequest({ request, onAuthSuccess });
+    } catch (err) {
       this.emitSockets({
         id: request.auth_request_id,
         data: {
           event: "auth:response",
-          data
+          data: {
+            response: err?.response?.data ?? null,
+            authorized: false
+          }
         }
       });
-      return;
     }
-
-    await this.wait(500);
-
-    this.pollRequest({ request, onAuthSuccess });
   }
 
   public routes({ onAuthSuccess }: MiddlewareArgs) {
@@ -399,6 +417,8 @@ export default class AuthArmorSDK {
           }
         }
       );
+      const timeout =
+        Date.now() + (mergedAuthConfig.timeout_in_seconds ?? 60) * 1000;
 
       const requestToken = JWT.sign(
         {
@@ -415,7 +435,7 @@ export default class AuthArmorSDK {
 
       this.pollRequest({ request: data, onAuthSuccess });
 
-      return { authRequest: data, requestToken };
+      return { authRequest: data, requestToken, timeout };
     } catch (err) {
       throw err.response?.data ?? err;
     }
