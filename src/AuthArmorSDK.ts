@@ -24,6 +24,7 @@ interface SuccessCallbackArgs {
 
 interface MiddlewareArgs {
   onAuthSuccess: (args: SuccessCallbackArgs) => any;
+  authConfig: Partial<AuthSettings>;
 }
 
 interface SDKSettings {
@@ -50,8 +51,9 @@ interface InviteSettings {
 }
 
 interface LocationData {
-  latitude: string;
-  longitude: string;
+  ip?: string;
+  latitude?: string;
+  longitude?: string;
 }
 
 interface AuthSettings {
@@ -234,9 +236,9 @@ export default class AuthArmorSDK {
                 token,
                 nickname,
                 authorized,
-                status: data.auth_request_status_name
-              },
-              metadata: responseData
+                status: data.auth_request_status_name,
+                metadata: responseData
+              }
             }
           });
         }
@@ -272,7 +274,7 @@ export default class AuthArmorSDK {
     }
   }
 
-  public routes({ onAuthSuccess }: MiddlewareArgs) {
+  public routes({ onAuthSuccess, authConfig = {} }: MiddlewareArgs) {
     const router = Express.Router();
 
     router.use(Express.json());
@@ -317,7 +319,8 @@ export default class AuthArmorSDK {
         });
       } catch (err) {
         res.status(400).json({
-          message: err.message,
+          code: err.errorCode,
+          message: err.errorMessage,
           success: false
         });
       }
@@ -327,19 +330,23 @@ export default class AuthArmorSDK {
       "/authenticate",
       async (req: Request<any, any, Partial<AuthSettings>>, res) => {
         try {
-          const authConfig = req.body;
+          const mergedConfig = { ...req.body, ...authConfig };
           const response = await this.authenticate({
             config: {
-              ...defaultAuthConfig,
+              ...mergedConfig,
               timeout_in_seconds: this.authTimeout,
               action_name:
-                authConfig.action_name ?? defaultAuthConfig.action_name,
-              nickname: authConfig.nickname,
-              origin_location_data: authConfig.origin_location_data,
-              short_msg: authConfig.short_msg ?? defaultAuthConfig.short_msg,
-              nonce: authConfig.nonce,
-              send_push: authConfig.send_push,
-              use_visual_verify: authConfig.use_visual_verify
+                mergedConfig.action_name ?? defaultAuthConfig.action_name,
+              nickname: mergedConfig.nickname,
+              origin_location_data: mergedConfig.origin_location_data ?? {
+                ip: (req.headers["x-forwarded-ip"] as string)
+                  ?.split(", ")
+                  .slice(-1)[0]
+              },
+              short_msg: mergedConfig.short_msg ?? defaultAuthConfig.short_msg,
+              nonce: mergedConfig.nonce,
+              send_push: mergedConfig.send_push,
+              use_visual_verify: mergedConfig.use_visual_verify
             },
             onAuthSuccess
           });
@@ -347,7 +354,8 @@ export default class AuthArmorSDK {
           res.status(200).json(response);
         } catch (err) {
           res.status(400).json({
-            message: err.message ?? err.error ?? err,
+            code: err.errorCode,
+            message: err.errorMessage,
             success: false
           });
         }
@@ -366,7 +374,8 @@ export default class AuthArmorSDK {
           });
         } catch (err) {
           res.status(400).json({
-            message: err.message,
+            code: err.errorCode,
+            message: err.errorMessage,
             success: false
           });
         }
