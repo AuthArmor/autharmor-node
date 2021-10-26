@@ -50,6 +50,14 @@ interface InviteSettings {
   referenceId?: string;
 }
 
+interface InviteIdOptions {
+  id: string;
+}
+
+interface InviteNicknameOptions {
+  nickname: string;
+}
+
 interface LocationData {
   ip?: string;
   latitude?: string;
@@ -196,7 +204,7 @@ export default class AuthArmorSDK {
     try {
       await this.verifyToken();
       const { data } = await Http.get(
-        `${config.apiUrl}/auth/request/${request.auth_request_id}`,
+        `${config.apiUrl}/auth/${request.auth_request_id}`,
         {
           headers: {
             Authorization: `Bearer ${this.token}`
@@ -279,6 +287,10 @@ export default class AuthArmorSDK {
 
     router.use(Express.json());
 
+    router.get("/", (req, res) => {
+      res.send("AuthArmor API is mounted here!");
+    });
+
     router.get("/me", async (req, res) => {
       try {
         const token = req.headers.authorization;
@@ -310,12 +322,9 @@ export default class AuthArmorSDK {
         }
 
         res.status(400).json({
-          data: {
-            nickname: verified.nickname,
-            authorized: verified.authorized,
-            expiresIn: verified.exp
-          },
-          success: true
+          nickname: verified.nickname,
+          authorized: verified.authorized,
+          expiresIn: verified.exp
         });
       } catch (err) {
         res.status(400).json({
@@ -362,16 +371,73 @@ export default class AuthArmorSDK {
       }
     );
 
+    router.get(
+      "/authenticate/status/:id",
+      async (req: Request<any, any, Partial<AuthSettings>>, res) => {
+        try {
+          const { data } = await Http.get(
+            `${config.apiUrl}/auth/${req.params.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${this.token}`
+              }
+            }
+          );
+
+          if (
+            data.auth_request_status_name !== "Pending" &&
+            data.auth_response.authorized
+          ) {
+            res.redirect("/auth/autharmor");
+          }
+
+          res.json(data);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    );
+
     router.post(
       "/invite",
       async (req: Request<any, any, InviteSettings>, res) => {
         try {
           const response = await this.invite(req.body);
 
-          res.json({
-            data: response,
-            success: true
+          res.json(response);
+        } catch (err) {
+          res.status(400).json({
+            code: err.errorCode,
+            message: err.errorMessage,
+            success: false
           });
+        }
+      }
+    );
+
+    router.get("/invite/:id", async (req: Request<InviteIdOptions>, res) => {
+      try {
+        const { id } = req.params;
+        const response = await this.getInviteById({ id });
+
+        res.json(response);
+      } catch (err) {
+        res.status(400).json({
+          code: err.errorCode,
+          message: err.errorMessage,
+          success: false
+        });
+      }
+    });
+
+    router.get(
+      "/invites/:nickname",
+      async (req: Request<InviteNicknameOptions>, res) => {
+        try {
+          const { nickname } = req.params;
+          const response = await this.getInvitesByNickname({ nickname });
+
+          res.json(response);
         } catch (err) {
           res.status(400).json({
             code: err.errorCode,
@@ -418,7 +484,7 @@ export default class AuthArmorSDK {
       };
       await this.verifyToken();
       const { data }: AxiosResponse<AuthRequest> = await Http.post(
-        `${config.apiUrl}/auth/request/async`,
+        `${config.apiUrl}/auth`,
         mergedAuthConfig,
         {
           headers: {
@@ -444,7 +510,7 @@ export default class AuthArmorSDK {
 
       this.pollRequest({ request: data, onAuthSuccess });
 
-      return { authRequest: data, requestToken, timeout };
+      return { ...data, requestToken, timeout };
     } catch (err) {
       throw err.response?.data ?? err;
     }
@@ -454,7 +520,7 @@ export default class AuthArmorSDK {
     try {
       await this.verifyToken();
       const { data } = await Http.post(
-        `${config.apiUrl}/invite/request`,
+        `${config.apiUrl}/invite`,
         {
           nickname: nickname,
           referenceId: referenceId
@@ -465,6 +531,36 @@ export default class AuthArmorSDK {
           }
         }
       );
+
+      return data;
+    } catch (err) {
+      throw err.response?.data ?? err;
+    }
+  }
+
+  public async getInviteById({ id }: InviteIdOptions) {
+    try {
+      await this.verifyToken();
+      const { data } = await Http.get(`${config.apiUrl}/invite/${id}`, {
+        headers: {
+          Authorization: `Bearer ${this.token}`
+        }
+      });
+
+      return data;
+    } catch (err) {
+      throw err.response?.data ?? err;
+    }
+  }
+
+  public async getInvitesByNickname({ nickname }: InviteNicknameOptions) {
+    try {
+      await this.verifyToken();
+      const { data } = await Http.get(`${config.apiUrl}/invites/${nickname}`, {
+        headers: {
+          Authorization: `Bearer ${this.token}`
+        }
+      });
 
       return data;
     } catch (err) {
