@@ -48,6 +48,7 @@ interface SocketEmission {
 interface InviteSettings {
   nickname: string;
   referenceId?: string;
+  reset?: boolean;
 }
 
 interface InviteIdOptions {
@@ -59,7 +60,7 @@ interface InviteNicknameOptions {
 }
 
 interface LocationData {
-  ip?: string;
+  ip_address?: string;
   latitude?: string;
   longitude?: string;
 }
@@ -348,7 +349,7 @@ export default class AuthArmorSDK {
                 mergedConfig.action_name ?? defaultAuthConfig.action_name,
               nickname: mergedConfig.nickname,
               origin_location_data: mergedConfig.origin_location_data ?? {
-                ip: (req.headers["x-forwarded-ip"] as string)
+                ip_address: (req.headers["x-forwarded-ip"] as string)
                   ?.split(", ")
                   .slice(-1)[0]
               },
@@ -516,14 +517,15 @@ export default class AuthArmorSDK {
     }
   }
 
-  public async invite({ nickname, referenceId }: InviteSettings) {
+  public async invite({ nickname, referenceId, reset }: InviteSettings) {
     try {
       await this.verifyToken();
       const { data } = await Http.post(
         `${config.apiUrl}/invite`,
         {
           nickname: nickname,
-          referenceId: referenceId
+          reference_id: referenceId,
+          reset_and_reinvite: reset
         },
         {
           headers: {

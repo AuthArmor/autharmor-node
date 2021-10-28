@@ -1,6 +1,6 @@
 {
   "name": "autharmor-node-sdk",
-  "version": "2.0.0-alpha.26",
+  "version": "2.0.0-alpha.27",
   "main": "dist/index.js",
   "license": "MIT",
   "homepage": "https://github.com/AuthArmor/autharmor-node-sdk#readme",
@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc",
     "build:watch": "tsc -w",
-    "build:publish": "tsc && yarn publish"
+    "build:publish": "tsc && yarn npm publish"
   },
   "devDependencies": {
     "@types/ws": "^7.4.6",
