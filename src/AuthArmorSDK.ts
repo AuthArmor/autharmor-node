@@ -349,7 +349,8 @@ export default class AuthArmorSDK {
                 mergedConfig.action_name ?? defaultAuthConfig.action_name,
               nickname: mergedConfig.nickname,
               origin_location_data: mergedConfig.origin_location_data ?? {
-                ip_address: (req.headers["x-forwarded-ip"] as string)
+                ip_address: ((req.headers["x-forwarded-for"] ||
+                  req.socket.remoteAddress) as string)
                   ?.split(", ")
                   .slice(-1)[0]
               },
