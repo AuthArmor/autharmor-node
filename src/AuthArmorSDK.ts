@@ -408,13 +408,6 @@ export default class AuthArmorSDK {
             }
           );
 
-          if (
-            data.auth_request_status_name !== "Pending" &&
-            data.auth_response.authorized
-          ) {
-            res.redirect("/auth/autharmor");
-          }
-
           res.json(data);
         } catch (err) {
           console.error(err);
