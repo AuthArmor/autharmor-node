@@ -33,6 +33,7 @@ interface SDKSettings {
   authTimeout?: number;
   server?: HTTPServer | HTTPSServer;
   polling?: boolean;
+  http?: boolean;
   secret: string;
 }
 
@@ -86,6 +87,15 @@ interface AuthRequest {
   push_message_sent: boolean;
 }
 
+interface ResponseData {
+  response: any;
+  token: string;
+  nickname: string;
+  authorized: boolean;
+  status: any;
+  metadata: any;
+}
+
 interface AuthenticateArgs {
   config: Partial<AuthSettings>;
   onAuthSuccess: (args: SuccessCallbackArgs) => any;
@@ -112,6 +122,7 @@ export default class AuthArmorSDK {
     server,
     authTimeout = 60,
     polling = false,
+    http = false,
     secret
   }: SDKSettings) {
     if (!secret) {
@@ -123,7 +134,13 @@ export default class AuthArmorSDK {
     this.authTimeout = authTimeout;
 
     this.onAuthSuccess = () => {};
-    this.init({ clientId, clientSecret, server, polling, secret });
+    this.init({
+      clientId,
+      clientSecret,
+      server,
+      polling: http || polling,
+      secret
+    });
   }
 
   private init({
@@ -214,11 +231,12 @@ export default class AuthArmorSDK {
       );
 
       if (data.auth_request_status_name !== "Pending") {
-        if (data.auth_response.authorized) {
-          const authorized = data.auth_response.authorized;
-          const nickname =
-            data.auth_response.auth_details.request_details.auth_profile_details
-              .nickname;
+        const { authorized } = data.auth_response.authorized;
+
+        if (authorized) {
+          const {
+            nickname
+          } = data.auth_response.auth_details.request_details.auth_profile_details;
           const responseData = await (onAuthSuccess || this.onAuthSuccess)?.({
             nickname,
             success: authorized,
@@ -236,20 +254,24 @@ export default class AuthArmorSDK {
             this.secret
           );
 
+          const eventData = {
+            response: data,
+            token,
+            nickname,
+            authorized,
+            status: data.auth_request_status_name,
+            metadata: responseData
+          };
+
           this.emitSockets({
             id: request.auth_request_id,
             data: {
               event: "auth:response",
-              data: {
-                response: data,
-                token,
-                nickname,
-                authorized,
-                status: data.auth_request_status_name,
-                metadata: responseData
-              }
+              data: eventData
             }
           });
+
+          return;
         }
 
         this.emitSockets({
@@ -268,7 +290,7 @@ export default class AuthArmorSDK {
 
       await this.wait(500);
 
-      this.pollRequest({ request, onAuthSuccess });
+      return this.pollRequest({ request, onAuthSuccess });
     } catch (err) {
       this.emitSockets({
         id: request.auth_request_id,
