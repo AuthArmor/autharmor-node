@@ -102,8 +102,8 @@ interface AuthenticateArgs {
 }
 
 interface RequestPollArgs {
-  request: AuthRequest;
-  onAuthSuccess: (args: SuccessCallbackArgs) => any;
+  requestId: string;
+  onAuthSuccess?: (args: SuccessCallbackArgs) => any;
 }
 
 export default class AuthArmorSDK {
@@ -216,22 +216,19 @@ export default class AuthArmorSDK {
   }
 
   private async pollRequest({
-    request,
+    requestId,
     onAuthSuccess
-  }: RequestPollArgs): Promise<void> {
+  }: RequestPollArgs): Promise<any> {
     try {
       await this.verifyToken();
-      const { data } = await Http.get(
-        `${config.apiUrl}/auth/${request.auth_request_id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+      const { data } = await Http.get(`${config.apiUrl}/auth/${requestId}`, {
+        headers: {
+          Authorization: `Bearer ${this.token}`
         }
-      );
+      });
 
       if (data.auth_request_status_name !== "Pending") {
-        const { authorized } = data.auth_response.authorized;
+        const { authorized } = data.auth_response;
 
         if (authorized) {
           const {
@@ -264,18 +261,18 @@ export default class AuthArmorSDK {
           };
 
           this.emitSockets({
-            id: request.auth_request_id,
+            id: requestId,
             data: {
               event: "auth:response",
               data: eventData
             }
           });
 
-          return;
+          return data;
         }
 
         this.emitSockets({
-          id: request.auth_request_id,
+          id: requestId,
           data: {
             event: "auth:response",
             data: {
@@ -285,15 +282,16 @@ export default class AuthArmorSDK {
             }
           }
         });
-        return;
+
+        return data;
       }
 
       await this.wait(500);
 
-      return this.pollRequest({ request, onAuthSuccess });
+      return await this.pollRequest({ requestId, onAuthSuccess });
     } catch (err) {
       this.emitSockets({
-        id: request.auth_request_id,
+        id: requestId,
         data: {
           event: "auth:response",
           data: {
@@ -399,14 +397,9 @@ export default class AuthArmorSDK {
       "/authenticate/status/:id",
       async (req: Request<any, any, Partial<AuthSettings>>, res) => {
         try {
-          const { data } = await Http.get(
-            `${config.apiUrl}/auth/${req.params.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${this.token}`
-              }
-            }
-          );
+          const data = await this.pollRequest({
+            requestId: req.params.id
+          });
 
           res.json(data);
         } catch (err) {
@@ -525,7 +518,7 @@ export default class AuthArmorSDK {
         }
       );
 
-      this.pollRequest({ request: data, onAuthSuccess });
+      this.pollRequest({ requestId: data.auth_request_id, onAuthSuccess });
 
       return { ...data, requestToken, timeout };
     } catch (err) {
