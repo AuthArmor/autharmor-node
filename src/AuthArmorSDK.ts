@@ -1,55 +1,20 @@
-import Http, { AxiosResponse } from "axios";
+import Http from "axios";
 import QueryString from "querystring";
-import WebSocket from "ws";
-import { Server as HTTPServer } from "http";
-import { Server as HTTPSServer } from "https";
-import Express, { NextFunction, Request, Response } from "express";
-import JWT from "jsonwebtoken";
 import config from "./config";
 
-const defaultAuthConfig: Partial<AuthSettings> = {
-  timeout_in_seconds: 60,
-  action_name: "Login",
-  short_msg: "Someone is trying to login using your Auth Armor account",
-  send_push: true,
-  use_visual_verify: false
-};
-
-interface SuccessCallbackArgs {
-  nickname: string;
-  success: boolean;
-  status: string;
-  rawResponse: any;
-}
-
-interface MiddlewareArgs {
-  onAuthSuccess: (args: SuccessCallbackArgs) => any;
-  authConfig: Partial<AuthSettings>;
+interface EnrollCredentialsRequest {
+  username: string;
+  userId: string;
+  signedResponse: any;
 }
 
 interface SDKSettings {
   clientId: string;
   clientSecret: string;
   authTimeout?: number;
-  server?: HTTPServer | HTTPSServer;
   polling?: boolean;
   http?: boolean;
-  secret: string;
-}
-
-interface WebsocketListeners {
-  [x: string]: WebSocket[];
-}
-
-interface SocketEmission {
-  id: string;
-  data: any;
-}
-
-interface InviteSettings {
-  nickname: string;
-  referenceId?: string;
-  reset?: boolean;
+  webauthnClientId?: string;
 }
 
 interface InviteIdOptions {
@@ -77,33 +42,25 @@ interface AuthSettings {
   use_visual_verify: boolean;
 }
 
-interface AuthRequest {
-  auth_request_id: string;
-  auth_profile_id: string;
-  visual_verify_value: string;
-  response_code: number;
-  response_message: string;
-  qr_code_data: string;
-  push_message_sent: boolean;
-}
-
-interface ResponseData {
-  response: any;
-  token: string;
-  nickname: string;
-  authorized: boolean;
-  status: any;
-  metadata: any;
-}
-
-interface AuthenticateArgs {
-  config: Partial<AuthSettings>;
-  onAuthSuccess: (args: SuccessCallbackArgs) => any;
-}
-
-interface RequestPollArgs {
+interface VerifyAuthenticatorRequestArgs {
+  type: "AuthArmorAuthenticator";
   requestId: string;
-  onAuthSuccess?: (args: SuccessCallbackArgs) => any;
+  token: string;
+}
+
+interface VerifyMagicLinkRequestArgs {
+  type: "MagicLink";
+  token: string;
+}
+
+interface VerifyWebAuthnRequestArgs {
+  type: "WebAuthn";
+  token: string;
+  requestId: string;
+}
+
+interface GetUserArgs {
+  userId: string;
 }
 
 export default class AuthArmorSDK {
@@ -111,96 +68,30 @@ export default class AuthArmorSDK {
   private clientSecret: string = "";
   private tokenExpiration: number = Date.now();
   private token: string | null = null;
-  private secret: string = "";
-  private authTimeout: number = 60;
-  private websockets: WebsocketListeners = {};
-  private onAuthSuccess: (args: SuccessCallbackArgs) => any = () => {};
+  private webauthnClientId?: string;
 
   constructor({
     clientId,
     clientSecret,
-    server,
-    authTimeout = 60,
     polling = false,
     http = false,
-    secret
+    webauthnClientId
   }: SDKSettings) {
-    if (!secret) {
-      throw new Error(
-        "Please specify a value in the secret property when initializing the AuthArmor SDK"
-      );
-    }
+    this.webauthnClientId = webauthnClientId;
 
-    this.authTimeout = authTimeout;
-
-    this.onAuthSuccess = () => {};
     this.init({
       clientId,
       clientSecret,
-      server,
-      polling: http || polling,
-      secret
+      polling: http || polling
     });
   }
 
-  private init({
-    clientId,
-    clientSecret,
-    server,
-    polling,
-    secret
-  }: SDKSettings) {
+  private init({ clientId, clientSecret }: SDKSettings) {
     this.clientId = clientId;
     this.clientSecret = clientSecret;
-    this.secret = secret;
-
-    this.initUpdateConnection({ server, polling });
   }
 
-  private initUpdateConnection({ server, polling }: Partial<SDKSettings>) {
-    if (!polling && server) {
-      const socketServer = new WebSocket.Server({
-        server,
-        path: "/auth/autharmor/socket",
-        noServer: !server
-      });
-
-      socketServer.on("connection", socket => {
-        socket.on("message", data => {
-          try {
-            if (typeof data !== "string") {
-              return;
-            }
-
-            const parsedData = JSON.parse(data);
-
-            if (parsedData.event === "subscribe:auth") {
-              this.websockets = {
-                ...this.websockets,
-                [parsedData.data.id]: [
-                  ...(this.websockets[parsedData.data.id] ?? []),
-                  socket
-                ]
-              };
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        });
-      });
-    }
-  }
-
-  private emitSockets({ id, data }: SocketEmission) {
-    const sockets = this.websockets[id] || [];
-    sockets.map(socket => socket.send(JSON.stringify(data)));
-  }
-
-  private wait(ms: number) {
-    return new Promise(resolve => setTimeout(() => resolve(true), ms));
-  }
-
-  private async verifyToken() {
+  private async extendToken() {
     if (this.tokenExpiration <= Date.now() + 2 * 60 * 1000) {
       const { data } = await Http.post(
         `${config.loginURL}/connect/token`,
@@ -215,343 +106,9 @@ export default class AuthArmorSDK {
     }
   }
 
-  private async pollRequest({
-    requestId,
-    onAuthSuccess
-  }: RequestPollArgs): Promise<any> {
-    try {
-      await this.verifyToken();
-      const { data } = await Http.get(`${config.apiUrl}/auth/${requestId}`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`
-        }
-      });
-
-      if (data.auth_request_status_name !== "Pending") {
-        const { authorized } = data.auth_response;
-
-        if (authorized) {
-          const {
-            nickname
-          } = data.auth_response.auth_details.request_details.auth_profile_details;
-          const responseData = await (onAuthSuccess || this.onAuthSuccess)?.({
-            nickname,
-            success: authorized,
-            status: data.auth_request_status_name,
-            rawResponse: data
-          });
-
-          const token = JWT.sign(
-            {
-              nickname,
-              authorized,
-              type: "user",
-              autharmor: true
-            },
-            this.secret
-          );
-
-          const eventData = {
-            response: data,
-            token,
-            nickname,
-            authorized,
-            status: data.auth_request_status_name,
-            metadata: responseData
-          };
-
-          this.emitSockets({
-            id: requestId,
-            data: {
-              event: "auth:response",
-              data: eventData
-            }
-          });
-
-          return data;
-        }
-
-        this.emitSockets({
-          id: requestId,
-          data: {
-            event: "auth:response",
-            data: {
-              response: data,
-              status: data.auth_request_status_name,
-              authorized: false
-            }
-          }
-        });
-
-        return data;
-      }
-
-      await this.wait(500);
-
-      return await this.pollRequest({ requestId, onAuthSuccess });
-    } catch (err) {
-      this.emitSockets({
-        id: requestId,
-        data: {
-          event: "auth:response",
-          data: {
-            response: err?.response?.data ?? null,
-            authorized: false
-          }
-        }
-      });
-    }
-  }
-
-  public routes({ onAuthSuccess, authConfig = {} }: MiddlewareArgs) {
-    const router = Express.Router();
-
-    router.use(Express.json());
-
-    router.get("/", (req, res) => {
-      res.send("AuthArmor API is mounted here!");
-    });
-
-    router.get("/me", async (req, res) => {
-      try {
-        const token = req.headers.authorization;
-
-        if (!token) {
-          res.status(400).json({
-            message: "Please specify a valid Authorization token",
-            success: false
-          });
-          return;
-        }
-
-        const verified = JWT.verify(token, this.secret) as JWT.JwtPayload;
-
-        if (!verified.autharmor) {
-          res.status(400).json({
-            message: `Non-autharmor token provided`,
-            success: false
-          });
-          return;
-        }
-
-        if (verified.type !== "user") {
-          res.status(400).json({
-            message: `The provided token has an invalid type: ${verified.type}`,
-            success: false
-          });
-          return;
-        }
-
-        res.status(400).json({
-          nickname: verified.nickname,
-          authorized: verified.authorized,
-          expiresIn: verified.exp
-        });
-      } catch (err) {
-        res.status(400).json({
-          code: err.errorCode,
-          message: err.errorMessage,
-          success: false
-        });
-      }
-    });
-
-    router.post(
-      "/authenticate",
-      async (req: Request<any, any, Partial<AuthSettings>>, res) => {
-        try {
-          const mergedConfig = { ...req.body, ...authConfig };
-          const response = await this.authenticate({
-            config: {
-              ...mergedConfig,
-              timeout_in_seconds: this.authTimeout,
-              action_name:
-                mergedConfig.action_name ?? defaultAuthConfig.action_name,
-              nickname: mergedConfig.nickname,
-              origin_location_data: mergedConfig.origin_location_data ?? {
-                ip_address: ((req.headers["x-forwarded-for"] ||
-                  req.socket.remoteAddress) as string)
-                  ?.split(", ")
-                  .slice(-1)[0]
-              },
-              short_msg: mergedConfig.short_msg ?? defaultAuthConfig.short_msg,
-              nonce: mergedConfig.nonce,
-              send_push: mergedConfig.send_push,
-              use_visual_verify: mergedConfig.use_visual_verify
-            },
-            onAuthSuccess
-          });
-
-          res.status(200).json(response);
-        } catch (err) {
-          res.status(400).json({
-            code: err.errorCode,
-            message: err.errorMessage,
-            success: false
-          });
-        }
-      }
-    );
-
-    router.get(
-      "/authenticate/status/:id",
-      async (req: Request<any, any, Partial<AuthSettings>>, res) => {
-        try {
-          const data = await this.pollRequest({
-            requestId: req.params.id
-          });
-
-          res.json(data);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    );
-
-    router.post(
-      "/invite",
-      async (req: Request<any, any, InviteSettings>, res) => {
-        try {
-          const response = await this.invite(req.body);
-
-          res.json(response);
-        } catch (err) {
-          res.status(400).json({
-            code: err.errorCode,
-            message: err.errorMessage,
-            success: false
-          });
-        }
-      }
-    );
-
-    router.get("/invite/:id", async (req: Request<InviteIdOptions>, res) => {
-      try {
-        const { id } = req.params;
-        const response = await this.getInviteById({ id });
-
-        res.json(response);
-      } catch (err) {
-        res.status(400).json({
-          code: err.errorCode,
-          message: err.errorMessage,
-          success: false
-        });
-      }
-    });
-
-    router.get(
-      "/invites/:nickname",
-      async (req: Request<InviteNicknameOptions>, res) => {
-        try {
-          const { nickname } = req.params;
-          const response = await this.getInvitesByNickname({ nickname });
-
-          res.json(response);
-        } catch (err) {
-          res.status(400).json({
-            code: err.errorCode,
-            message: err.errorMessage,
-            success: false
-          });
-        }
-      }
-    );
-
-    return router;
-  }
-
-  public middleware(req: Request, res: Response, next: NextFunction) {
-    const token = req.headers.authorization;
-
-    if (!token) {
-      return next();
-    }
-
-    const verified = JWT.verify(token, this.secret) as JWT.JwtPayload;
-
-    if (!verified.autharmor || verified.type !== "user") {
-      return next();
-    }
-
-    res.locals.authArmorUser = {
-      nickname: verified.nickname,
-      authorized: verified.authorized,
-      expiresIn: verified.exp
-    };
-
-    return next();
-  }
-
-  public async authenticate({
-    config: authConfig,
-    onAuthSuccess
-  }: AuthenticateArgs) {
-    try {
-      const mergedAuthConfig = {
-        ...defaultAuthConfig,
-        ...authConfig
-      };
-      await this.verifyToken();
-      const { data }: AxiosResponse<AuthRequest> = await Http.post(
-        `${config.apiUrl}/auth`,
-        mergedAuthConfig,
-        {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
-        }
-      );
-      const timeout =
-        Date.now() + (mergedAuthConfig.timeout_in_seconds ?? 60) * 1000;
-
-      const requestToken = JWT.sign(
-        {
-          requestId: data.auth_request_id,
-          type: "request",
-          autharmor: true
-        },
-        this.secret,
-        {
-          expiresIn:
-            Date.now() + (mergedAuthConfig.timeout_in_seconds ?? 60) * 1000
-        }
-      );
-
-      this.pollRequest({ requestId: data.auth_request_id, onAuthSuccess });
-
-      return { ...data, requestToken, timeout };
-    } catch (err) {
-      throw err.response?.data ?? err;
-    }
-  }
-
-  public async invite({ nickname, referenceId, reset }: InviteSettings) {
-    try {
-      await this.verifyToken();
-      const { data } = await Http.post(
-        `${config.apiUrl}/invite`,
-        {
-          nickname: nickname,
-          reference_id: referenceId,
-          reset_and_reinvite: reset
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
-        }
-      );
-
-      return data;
-    } catch (err) {
-      throw err.response?.data ?? err;
-    }
-  }
-
   public async getInviteById({ id }: InviteIdOptions) {
     try {
-      await this.verifyToken();
+      await this.extendToken();
       const { data } = await Http.get(`${config.apiUrl}/invite/${id}`, {
         headers: {
           Authorization: `Bearer ${this.token}`
@@ -566,7 +123,7 @@ export default class AuthArmorSDK {
 
   public async getInvitesByNickname({ nickname }: InviteNicknameOptions) {
     try {
-      await this.verifyToken();
+      await this.extendToken();
       const { data } = await Http.get(`${config.apiUrl}/invites/${nickname}`, {
         headers: {
           Authorization: `Bearer ${this.token}`
@@ -576,6 +133,189 @@ export default class AuthArmorSDK {
       return data;
     } catch (err) {
       throw err.response?.data ?? err;
+    }
+  }
+
+  public async startEnrollCredentials({
+    username = "",
+    userId = "00000000-0000-0000-0000-000000000000",
+    timeout = 30000
+  }) {
+    try {
+      await this.extendToken();
+      const { data } = await Http.post(
+        `${config.apiUrlV3}/users/${userId}/webauthn/register/start`,
+        {
+          webauthn_client_id: this.webauthnClientId,
+          timeout_in_seconds: timeout
+        },
+        {
+          headers: {
+            "X-AuthArmor-UsernameValue": username,
+            Authorization: `Bearer ${this.token}`
+          }
+        }
+      );
+
+      return data;
+    } catch (error) {
+      console.error(error.response.data);
+      return error;
+    }
+  }
+
+  public async verifyEnrollCredentials({
+    username = "",
+    userId = "00000000-0000-0000-0000-000000000000",
+    signedResponse
+  }: EnrollCredentialsRequest) {
+    try {
+      await this.extendToken();
+      const { data } = await Http.post(
+        `${config.apiUrlV3}/users/${userId}/webauthn/register/finish`,
+        {
+          webauthn_client_id: this.webauthnClientId,
+          response: signedResponse
+        },
+        {
+          headers: {
+            "X-AuthArmor-UsernameValue": username,
+            Authorization: `Bearer ${this.token}`
+          }
+        }
+      );
+
+      return data;
+    } catch (error) {
+      console.error(error.response.data);
+      throw error;
+    }
+  }
+
+  public async verifyAuthRequest({
+    type,
+    ...requestData
+  }:
+    | VerifyAuthenticatorRequestArgs
+    | VerifyMagicLinkRequestArgs
+    | VerifyWebAuthnRequestArgs) {
+    try {
+      await this.extendToken();
+      const requestTypes = {
+        AuthArmorAuthenticator: "authenticator",
+        MagicLink: "magiclink",
+        WebAuthn: "webauthn"
+      };
+
+      const payload: any = {
+        auth_validation_token: (requestData as VerifyMagicLinkRequestArgs)
+          .token,
+        auth_request_id: (requestData as VerifyWebAuthnRequestArgs).requestId
+      };
+
+      const { data } = await Http.post(
+        `${config.apiUrlV3}/auth/${requestTypes[type]}/validate`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        }
+      );
+
+      if (data?.validate_auth_response_details?.is_replay) {
+        throw new Error("Replayed request detected!");
+      }
+
+      if (!data?.validate_auth_response_details?.authorized) {
+        throw new Error("Unauthorized user");
+      }
+
+      console.log("Request verified, fetching request details...", data);
+
+      const requestDetails =
+        data.validate_auth_response_details.auth_details.response_details
+          .auth_profile_details;
+
+      return {
+        verified: true,
+        requestDetails
+      };
+    } catch (err) {
+      console.error(err?.response ?? err);
+      throw {
+        verified: false,
+        error: err?.response?.data ?? err
+      };
+    }
+  }
+
+  public async verifyRegisterRequest({
+    type,
+    ...requestData
+  }:
+    | VerifyAuthenticatorRequestArgs
+    | VerifyMagicLinkRequestArgs
+    | VerifyWebAuthnRequestArgs) {
+    try {
+      await this.extendToken();
+      const requestTypes = {
+        AuthArmorAuthenticator: "authenticator",
+        MagicLink: "magiclink",
+        WebAuthn: "webauthn"
+      };
+
+      const payload: any = {
+        registration_validation_token: (requestData as VerifyMagicLinkRequestArgs)
+          .token,
+        auth_request_id: (requestData as VerifyWebAuthnRequestArgs).requestId
+      };
+
+      const { data } = await Http.post(
+        `${config.apiUrlV3}/users/register/${requestTypes[type]}/validate`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        }
+      );
+
+      console.log("Request verified, fetching request details...", data);
+
+      return {
+        verified: true,
+        requestDetails: data
+      };
+    } catch (err) {
+      throw {
+        verified: false,
+        error: err?.response?.data ?? err
+      };
+    }
+  }
+
+  public async getUserById({ userId }: GetUserArgs) {
+    try {
+      await this.extendToken();
+
+      const { data } = await Http.get(
+        `${config.apiUrlV3}/users/${userId}/validate`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        }
+      );
+
+      console.log("User retrieved:", data);
+
+      return data;
+    } catch (err) {
+      throw {
+        verified: false,
+        error: err?.response?.data ?? err
+      };
     }
   }
 }
