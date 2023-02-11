@@ -203,7 +203,7 @@ export default class AuthArmorSDK {
       await this.extendToken();
       const requestTypes = {
         AuthArmorAuthenticator: "authenticator",
-        MagicLink: "magiclink",
+        MagicLink: "magiclink_email",
         WebAuthn: "webauthn"
       };
 
@@ -261,7 +261,7 @@ export default class AuthArmorSDK {
       await this.extendToken();
       const requestTypes = {
         AuthArmorAuthenticator: "authenticator",
-        MagicLink: "magiclink",
+        MagicLink: "magiclink_email",
         WebAuthn: "webauthn"
       };
 
@@ -299,14 +299,11 @@ export default class AuthArmorSDK {
     try {
       await this.extendToken();
 
-      const { data } = await Http.get(
-        `${config.apiUrlV3}/users/${userId}/validate`,
-        {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
+      const { data } = await Http.get(`${config.apiUrlV3}/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${this.token}`
         }
-      );
+      });
 
       console.log("User retrieved:", data);
 
