@@ -42,6 +42,12 @@ interface AuthSettings {
   use_visual_verify: boolean;
 }
 
+interface StartEnrollArgs {
+  username: string;
+  userId: string;
+  timeout?: number;
+}
+
 interface VerifyAuthenticatorRequestArgs {
   type: "AuthArmorAuthenticator";
   requestId: string;
@@ -106,41 +112,11 @@ export default class AuthArmorSDK {
     }
   }
 
-  public async getInviteById({ id }: InviteIdOptions) {
-    try {
-      await this.extendToken();
-      const { data } = await Http.get(`${config.apiUrl}/invite/${id}`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`
-        }
-      });
-
-      return data;
-    } catch (err) {
-      throw err.response?.data ?? err;
-    }
-  }
-
-  public async getInvitesByNickname({ nickname }: InviteNicknameOptions) {
-    try {
-      await this.extendToken();
-      const { data } = await Http.get(`${config.apiUrl}/invites/${nickname}`, {
-        headers: {
-          Authorization: `Bearer ${this.token}`
-        }
-      });
-
-      return data;
-    } catch (err) {
-      throw err.response?.data ?? err;
-    }
-  }
-
   public async startEnrollCredentials({
     username = "",
     userId = "00000000-0000-0000-0000-000000000000",
     timeout = 30000
-  }) {
+  }: StartEnrollArgs) {
     try {
       await this.extendToken();
       const { data } = await Http.post(

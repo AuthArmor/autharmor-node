@@ -1,10 +1,4 @@
-# AuthArmor Node.js SDK
-
-## ℹ For Express.js Users
-
-We recommend you to use the [AuthArmor Express SDK](https://github.com/AuthArmor/autharmor-express-sdk) in case you would like to go for a simple and easy-to-use solution for setting up AuthArmor Authentication.
-
-If you'd like a more advanced and flexible interface for using the AuthArmor API, you can proceed with setting up the AuthArmor Node SDK.
+# autharmor-node-sdk
 
 ## 🏁 Installation
 
@@ -18,113 +12,240 @@ npm i -s autharmor-node-sdk
 yarn add autharmor-node-sdk
 ```
 
-## 🧭 Usage
+## 🚀 Usage
 
-### 🚀 Initializing the SDK
+Import the module:
 
-In order to initialize the SDK, you'll have to create a new instance of the AuthArmor Node.js SDK with your Client ID and Client Secret specified in it.
-
-```javascript
-const AuthArmor = new AuthArmorSDK({
-  clientId: "1234-1234-1234-1234",
-  clientSecret: "123456789"
-}); // specify your client credentials
+```ts
+import AuthArmorSDK from "autharmor-sdk";
 ```
 
-### How Does it work?
+Instantiate the module by passing in the following settings:
 
-For information regarding how AuthArmor works and its concepts, please visit the [Documentation site](https://docs.autharmor.com)
-
-## 🌏 HTTP Routes and Schema
-
-### Default Client-side SDK Routes
-
-We recommend you specify the following HTTP routes in your backend so it works immediately with the AuthArmor Client SDK. You can always change the routes in the Client-side SDK as well if you need to.
-
-| Name                           | Route                               |
-| ------------------------------ | ----------------------------------- |
-| Create Invite (Register)       | POST /auth/autharmor/invite         |
-| Confirm Invite                 | POST /auth/autharmor/invite/confirm |
-| Authenticate                   | POST /auth/autharmor/auth           |
-| Get user authentication status | GET /auth/autharmor/me              |
-| Logout                         | GET /auth/autharmor/logout          |
-
-### Required HTTP request body schema
-
-All of your AuthArmor HTTP routes should match the ones specified below to work with the Client SDK.
-
-#### Create Invite
-
-| Field Name         | Type      | Description                                                       | Required |
-| ------------------ | --------- | ----------------------------------------------------------------- | -------- |
-| nickname           | `string`  | The user's username, nicknames should be unique for each user     | ✔        |
-| reference_id       | `string`  | An optional identifier for the new user in the DB                 | ❌       |
-| reset_and_reinvite | `boolean` | Specifies whether this invite should overwrite any existing users | ❌       |
-
-#### Confirm Invite
-
-| Field Name | Type     | Description                                                   | Required |
-| ---------- | -------- | ------------------------------------------------------------- | -------- |
-| nickname   | `string` | The user's username, nicknames should be unique for each user | ✔        |
-
-#### Authenticate
-
-| Field Name | Type     | Description                                                   | Required |
-| ---------- | -------- | ------------------------------------------------------------- | -------- |
-| nickname   | `string` | The user's username, nicknames should be unique for each user | ✔        |
-
-## 🧲 Invites
-
-### Generating a new invite
-
-You can easily generate invites to your app and register new users with Auth Armor by doing the following:
-
-```javascript
-// Initialize the SDK
-const AuthArmor = new AuthArmorSDK({
-  clientId: "1234-1234-1234-1234",
-  clientSecret: "123456789"
+```js
+const sdk = new AuthArmorSDK({
+  clientId: "your_client_id",
+  clientSecret: "your_client_secret",
+  webauthnClientId: "your_webauthn_client_id" // optional
 });
-
-// Generate a new invite
-const invite = await AuthArmor.invite({
-  nickname: "", // Specify the invite's nickname
-  referenceId: "" // Specify a reference ID for the invite
-});
-
-console.log(invite);
-/**
- * Returns:
- * {
- *   "auth_profile_id": "`string`",
- *   "invite_code": "`string`",
- *   "date_expires": "ISODate `string`",
- *   "invite_type": "`string`",
- *   "aa_sig": "`string`"
- * }
- */
 ```
 
-### Handling invites
+Verify that the authentication request was successfully done:
 
-Once an invite is generated, you'll need to save its info somewhere in your database along with the user's username so once the user tries to confirm the invite, you can retrieve the invite's info from the database, create an invite confirmation request and if the invite confirmation request succeeds, you can create a new user record and save it in your database.
+```ts
+await sdk.verifyAuthRequest({
+  type: "AuthArmorAuthenticator", // Could be one of the following values: "MagicLink", "WebAuthn", or "AuthArmorAuthenticator"
+  token: "<MagicLink request validation token>"
+});
+```
 
-## 🔏 Authentication
+## Methods
 
-### Initializing an authentication request
+### `startEnrollCredentials(options: { username: string, userId: string, timeout?: number })`
 
-In order to initialize a login request for authenticating users to your site, you can simply call the `authenticate()` function with the auth request's config (Nickname, Action name, Short Message) and an authentication request will be sent to your user's phone. Once the user responds to the auth request, the `authenticate()` function's Promise resolves
+This method initiates the process of enrolling new WebAuthn credentials.
 
-```javascript
-try {
-  console.log("Authenticating user...");
-  await AuthArmor.authenticate({
-    nickname: "<username>",
-    action_name: "Lorem ipsum",
-    short_msg: "Lorem ipsum dolor sit amet."
-  });
-  console.log("User authenticated!");
-} catch (err) {
-  console.error("The request was declined or has timed out!", err);
+- `username`: A string representing the username of the user who is enrolling.
+- `userId`: A string representing the ID of the user who is enrolling.
+- `timeout`: (optional) A number representing the timeout in seconds. The default value is `30000`.
+
+#### **Returns**
+
+---
+
+A Promise that resolves to an object with the following properties:
+
+```js
+{
+  register_response: {
+    challenge: string,
+    timeout_in_seconds: number,
+    user_id: string,
+    webauthn_options: {
+      attestation: string,
+      authenticator_attachment: string,
+      pub_key_cred_params: [
+        {
+          alg: number,
+          type: string
+        }
+      ],
+      rp: {
+        id: string,
+        name: string
+      },
+      timeout_in_seconds: number,
+      user: {
+        display_name: string,
+        id: string,
+        name: string
+      }
+    },
+    webauthn_registration_options: {
+      rpId: string,
+      attestation: string,
+      authenticatorSelection: {
+        authenticatorAttachment: string,
+        userVerification: string
+      },
+      pubKeyCredParams: [
+        {
+          alg: number,
+          type: string
+        }
+      ],
+      timeout: number,
+      user: {
+        displayName: string,
+        id: string,
+        name: string
+      }
+    }
+  },
+  status: string
 }
+```
+
+### `verifyEnrollCredentials(options: EnrollCredentialsRequest)`
+
+This method verifies the signed response of a newly enrolled WebAuthn credential.
+
+- `username`: A string representing the username of the user who is enrolling.
+- `userId`: A string representing the ID of the user who is enrolling.
+- `signedResponse`: An object representing the signed response of the newly enrolled WebAuthn credential.
+
+The signedResponse object should have the following properties:
+
+```js
+{
+  attestationObject: string,
+  clientDataJSON: string
+}
+```
+
+#### **Returns**
+
+---
+
+A Promise that resolves to an object with the following properties:
+
+```ts
+Promise<{
+  is_enrolled: boolean,
+  status: string
+}>
+```
+
+### `verifyAuthRequest({ requestId: string, token: string, type: string }): Promise<boolean>`
+
+This method is used to verify an authentication request sent by a user from the frontend. The requestId and token fields are required as parameters to verify the request. Both of these values are provided by the frontend SDK, which generates them when a user performs an auth request successfully. Once the user receives these values, they can send them over to the backend to verify using the verifyAuthRequest method.
+
+- `type` - A string that specifies the type of authentication being verified. It can be one of the following values: "AuthArmorAuthenticator", "MagicLink", or "WebAuthn".
+- `requestId` - A string representing the unique identifier of the authentication request that was generated by the frontend SDK.
+- `token` - A string representing the authentication token that was generated by the frontend SDK.
+
+#### **Returns**
+
+---
+
+A Promise that resolves to an object with the following properties:
+
+```ts
+Promise<{
+  verified: boolean,
+  requestDetails: object // Includes info on the verified user
+}>
+```
+
+#### **Example**
+
+---
+
+You can use the `verifyAuthRequest` method to verify that the user authenticated successfully and create a new session:
+
+```js
+api.post("/auth/login", request => {
+  const { type, token, requestId } = request.body;
+
+  const authRequest = await sdk.verifyAuthRequest({
+    requestId,
+    token,
+    type
+  })
+
+  if (registerRequest.verified) {
+    // User authenticated successfully!
+
+    // TODO: Generate a new session for the user
+  } else {
+    // User failed the verification, throw an error response
+  }
+})
+```
+
+Another example use-case is to use the `verifyAuthRequest` method to verify certain sensitive actions that would require 2FA before performing:
+
+```js
+api.post("/wallet/transfer", request => {
+  const { type, token, requestId } = request.body;
+
+  const actionVerification = await sdk.verifyAuthRequest({
+    requestId,
+    token,
+    type
+  })
+
+  if (actionVerification.verified) {
+    // User has performed 2FA successfully
+
+    // TODO: Transfer money
+  } else {
+    // User failed the verification, throw an error response
+  }
+})
+```
+
+### `verifyRegisterRequest({ requestId: string, token: string, type: string }): Promise<boolean>`
+
+This method is used to verify an authentication request sent by a user from the frontend. The requestId and token fields are required as parameters to verify the request. Both of these values are provided by the frontend SDK, which generates them when a user performs an auth request successfully. Once the user receives these values, they can send them over to the backend to verify using the verifyAuthRequest method.
+
+- `type` - A string that specifies the type of authentication being verified. It can be one of the following values: "AuthArmorAuthenticator", "MagicLink", or "WebAuthn".
+- `requestId` - A string representing the unique identifier of the authentication request that was generated by the frontend SDK.
+- `token` - A string representing the authentication token that was generated by the frontend SDK.
+
+#### **Returns**
+
+---
+
+A Promise that resolves to an object with the following properties:
+
+```ts
+Promise<{
+  verified: boolean,
+  requestDetails: object // Includes info on the verified user
+}>
+```
+
+#### **Example**
+
+---
+
+```js
+api.post("/auth/register", request => {
+  const { type, token, requestId } = request.body;
+
+  const registerRequest = await sdk.verifyRegisterRequest({
+    requestId,
+    token,
+    type
+  })
+
+  if (registerRequest.verified) {
+    // User was registered successfully!
+
+    // TODO: Example use-case: Insert user in database and generate a new session for the user
+  } else {
+    // User failed the verification, throw an error response
+  }
+})
 ```
