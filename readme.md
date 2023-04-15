@@ -30,15 +30,6 @@ const sdk = new AuthArmorSDK({
 });
 ```
 
-Verify that the authentication request was successfully done:
-
-```ts
-await sdk.verifyAuthRequest({
-  type: "AuthArmorAuthenticator", // Could be one of the following values: "MagicLink", "WebAuthn", or "AuthArmorAuthenticator"
-  token: "<MagicLink request validation token>"
-});
-```
-
 ## Methods
 
 ### `startEnrollCredentials(options: { username: string, userId: string, timeout?: number })`
