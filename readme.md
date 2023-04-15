@@ -136,7 +136,7 @@ A Promise that resolves to an object with the following properties:
 }
 ```
 
-### `verifyAuthRequest({ requestId: string, token: string, type: string }): Promise<boolean>`
+### `verifyAuthRequest({ requestId: string, token: string, type: string })`
 
 This method is used to verify an authentication request sent by a user from the frontend. The requestId and token fields are required as parameters to verify the request. Both of these values are provided by the frontend SDK, which generates them when a user performs an auth request successfully. Once the user receives these values, they can send them over to the backend to verify using the verifyAuthRequest method.
 
@@ -203,7 +203,7 @@ api.post("/wallet/transfer", async request => {
 });
 ```
 
-### `verifyRegisterRequest({ requestId: string, token: string, type: string }): Promise<boolean>`
+### `verifyRegisterRequest({ requestId: string, token: string, type: string })`
 
 This method is used to verify an authentication request sent by a user from the frontend. The requestId and token fields are required as parameters to verify the request. Both of these values are provided by the frontend SDK, which generates them when a user performs an auth request successfully. Once the user receives these values, they can send them over to the backend to verify using the verifyAuthRequest method.
 
