@@ -1,4 +1,4 @@
-# autharmor-node-sdk
+# Auth Armor Node.js SDK
 
 ## 🏁 Installation
 
