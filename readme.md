@@ -20,7 +20,7 @@ Import the module:
 import AuthArmorSDK from "autharmor-sdk";
 ```
 
-Instantiate the module by passing in the following settings:
+Instantiate the module by passing in your Auth Armor API Key credentials:
 
 ```js
 const sdk = new AuthArmorSDK({
@@ -130,10 +130,10 @@ The signedResponse object should have the following properties:
 A Promise that resolves to an object with the following properties:
 
 ```ts
-Promise<{
+{
   is_enrolled: boolean,
   status: string
-}>
+}
 ```
 
 ### `verifyAuthRequest({ requestId: string, token: string, type: string }): Promise<boolean>`
@@ -151,10 +151,10 @@ This method is used to verify an authentication request sent by a user from the 
 A Promise that resolves to an object with the following properties:
 
 ```ts
-Promise<{
+{
   verified: boolean,
   requestDetails: object // Includes info on the verified user
-}>
+}
 ```
 
 #### **Example**
@@ -164,45 +164,43 @@ Promise<{
 You can use the `verifyAuthRequest` method to verify that the user authenticated successfully and create a new session:
 
 ```js
-api.post("/auth/login", request => {
+api.post("/auth/login", async request => {
   const { type, token, requestId } = request.body;
 
   const authRequest = await sdk.verifyAuthRequest({
     requestId,
     token,
     type
-  })
+  });
 
   if (registerRequest.verified) {
     // User authenticated successfully!
-
     // TODO: Generate a new session for the user
   } else {
     // User failed the verification, throw an error response
   }
-})
+});
 ```
 
 Another example use-case is to use the `verifyAuthRequest` method to verify certain sensitive actions that would require 2FA before performing:
 
 ```js
-api.post("/wallet/transfer", request => {
+api.post("/wallet/transfer", async request => {
   const { type, token, requestId } = request.body;
 
   const actionVerification = await sdk.verifyAuthRequest({
     requestId,
     token,
     type
-  })
+  });
 
   if (actionVerification.verified) {
     // User has performed 2FA successfully
-
     // TODO: Transfer money
   } else {
     // User failed the verification, throw an error response
   }
-})
+});
 ```
 
 ### `verifyRegisterRequest({ requestId: string, token: string, type: string }): Promise<boolean>`
@@ -220,10 +218,10 @@ This method is used to verify an authentication request sent by a user from the 
 A Promise that resolves to an object with the following properties:
 
 ```ts
-Promise<{
+{
   verified: boolean,
   requestDetails: object // Includes info on the verified user
-}>
+}
 ```
 
 #### **Example**
@@ -231,21 +229,20 @@ Promise<{
 ---
 
 ```js
-api.post("/auth/register", request => {
+api.post("/auth/register", async request => {
   const { type, token, requestId } = request.body;
 
   const registerRequest = await sdk.verifyRegisterRequest({
     requestId,
     token,
     type
-  })
+  });
 
   if (registerRequest.verified) {
     // User was registered successfully!
-
     // TODO: Example use-case: Insert user in database and generate a new session for the user
   } else {
     // User failed the verification, throw an error response
   }
-})
+});
 ```
