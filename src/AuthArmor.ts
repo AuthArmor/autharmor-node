@@ -1,5 +1,3 @@
-import Http from "axios";
-import QueryString from "querystring";
 import { IAuthArmorSdk } from "./AuthArmor.interface";
 import extendToken from "./helper/token";
 import {
