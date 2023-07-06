@@ -79,84 +79,74 @@ export interface pageInfo {
 export interface IAuthArmorSdk {
   registerWithEmail: (
     emailProps: IregisterWithEmail
-  ) => Promise<[IregisterWithEmailResponse | null, null | any]>;
+  ) => Promise<IregisterWithEmailResponse>;
   verifyMagicLinkEmail: (
     verifyMagicLinkEmailProps: IverifyMagicLinkEmail
-  ) => Promise<[IverfiyMagicLinkEmailResponse | null, null | any]>;
+  ) => Promise<IverfiyMagicLinkEmailResponse>;
   linkEmailWithUserName: (
     linkProps: IlinkEmailWithUserName
-  ) => Promise<[null | IlinkEmailWithUserNameResponse, null | any]>;
+  ) => Promise<IlinkEmailWithUserNameResponse>;
   updateEmail: (
     updateEmailProps: IupdateEmail
-  ) => Promise<[null | IupdateEmailResponse, null | any]>;
-  updateUser: (
-    updateUserProps: IupdateUser
-  ) => Promise<[null | IupdateUserResponse, null | any]>;
-  getUser: (
-    getUserProps: IgetUser
-  ) => Promise<[null | IgetUserResponse, null | any]>;
+  ) => Promise<IupdateEmailResponse>;
+  updateUser: (updateUserProps: IupdateUser) => Promise<IupdateUserResponse>;
+  getUser: (getUserProps: IgetUser) => Promise<IgetUserResponse>;
   checkRegistartion: (
     getUserProps: IgetUser,
     timeOutInSeconds: number
-  ) => Promise<[null | IgetUserResponse, null | any]>;
+  ) => Promise<IgetUserResponse>;
   signInWebAuth: (
     validateWebAuthProps: IvalidateWebAuth
-  ) => Promise<[null | IvalidateWebAuthResponse, null | any]>;
-  getAll: (
-    getAllProps: IgetAllUser
-  ) => Promise<[null | IgetAllUserResponse, null | any]>;
-  getUserAuth: (
-    getAuthProps: IgetUserAuth
-  ) => Promise<[null | IgetUserAuthResponse, null | any]>;
+  ) => Promise<IvalidateWebAuthResponse>;
+  getAll: (getAllProps: IgetAllUser) => Promise<IgetAllUserResponse>;
+  getUserAuth: (getAuthProps: IgetUserAuth) => Promise<IgetUserAuthResponse>;
   validateAuthMagicLink: (
     validateAuthMagicLinkProps: IvalidateAuthMagicLink
-  ) => Promise<[null | IvalidateAuthMagicLinkResponse, null | any]>;
+  ) => Promise<IvalidateAuthMagicLinkResponse>;
   startAuthMagicLink: (
     startAuthMagicLinkProps: IstartAuthMagicLink
-  ) => Promise<[null | IstartAuthMagicLinkResponse, null | any]>;
+  ) => Promise<IstartAuthMagicLinkResponse>;
   registerWithAuthenticator: (
     registerWithAuthenticatorProps: IregisterWithAuthenticator
-  ) => Promise<[null | IregisterAuthResponse, null | any]>;
+  ) => Promise<IregisterAuthResponse>;
 
   linkAuthWithUserName: (
     linkAuthWithUserNameProps: IlinkAuth
-  ) => Promise<[null | IlinkAuthWithUserNameResponse, null | any]>;
+  ) => Promise<IlinkAuthWithUserNameResponse>;
   startAuth: (
     startAuthProps: IstartAuthWithAutenticator
-  ) => Promise<[null | IstartAuthResponse, null | any]>;
+  ) => Promise<IstartAuthResponse>;
   verifyAuthPoll: (
     verifyAuthProps: IvalidateAuthWithAutenticator,
     timeOutInSeconds: number
-  ) => Promise<[null | IverifyAuthResponse, null | any]>;
+  ) => Promise<IverifyAuthResponse>;
   verifyAuth: (
     verifyAuthProps: IvalidateAuthWithAutenticator
-  ) => Promise<[null | IverifyAuthResponse, null | any]>;
-  getAuthInfo: (
-    getAuthInfoProps: IauthInfo
-  ) => Promise<[null | Iauth_history_records, null | any]>;
+  ) => Promise<IverifyAuthResponse>;
+  getAuthInfo: (getAuthInfoProps: IauthInfo) => Promise<Iauth_history_records>;
   linkWebAuthWithUserName: (
     linkWebAuthWithUserNameProps: IlinkWebAuth
-  ) => Promise<[null | IlinkWebAuthWithUserName, null | any]>;
+  ) => Promise<IlinkWebAuthWithUserName>;
   registerWithWebAuth: (
     registerWithWebAuthProps: IregisterWithWebAuth
-  ) => Promise<[null | IregisterWebAuthResponse, null | any]>;
+  ) => Promise<IregisterWebAuthResponse>;
   finishWebRegister: (
     finishWebRegisterProps: IfinishRegisterWebAuth
-  ) => Promise<[null | IfinishWebAuthResponse, null | any]>;
+  ) => Promise<IfinishWebAuthResponse>;
   signInMagicLink: (
     validateAuthMagicLinkProps: IvalidateAuthMagicLink
-  ) => Promise<[null | IsignInResponse, null | any]>;
+  ) => Promise<IsignInResponse>;
 
   finishWebAuthExisting: (
     finishWebAuthExistingProps: IfinishWebAuthExisting
-  ) => Promise<[null | IfinishWebAuthExistingResponse, null | any]>;
+  ) => Promise<IfinishWebAuthExistingResponse>;
   startWebAuth: (
     startWebAuthProps: IauthWebAuth
-  ) => Promise<[null | IstartWebAuthResponse, null | any]>;
+  ) => Promise<IstartWebAuthResponse>;
   finishWebAuth: (
     finishWebAuthProps: IfinishWebAuth
-  ) => Promise<[null | IfinishWebAuthResponse, null | any]>;
+  ) => Promise<IfinishWebAuthResponse>;
   validateWebAuth: (
     validateWebAuthProps: IvalidateWebAuth
-  ) => Promise<[null | IvalidateWebAuthResponse, null | any]>;
+  ) => Promise<IvalidateWebAuthResponse>;
 }

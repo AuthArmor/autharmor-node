@@ -1,6 +1,7 @@
 import Http from "axios";
 import QueryString from "querystring";
 import config from "../../config";
+import { FetchFunction } from "../../helper/fetch";
 import { removeUndefined } from "../../helper/removeUndefined";
 const baseUrl = (userId: string | null) => ({
   validate: `${config.apiUrlV3}/auth/magiclink_email/validate`,
@@ -33,79 +34,57 @@ export interface IstartAuthMagicLink {
   user_agent?: string;
 }
 export const authMagicLink = {
-  validateAuthMagicLink: async (
-    {
-      auth_validation_token,
-      ip_address,
-      user_agent,
-      auth_request_id,
-      nonce
-    }: IvalidateAuthMagicLink,
-    token: string
-  ) => {
+  validateAuthMagicLink: async ({
+    auth_validation_token,
+    ip_address,
+    user_agent,
+    auth_request_id,
+    nonce
+  }: IvalidateAuthMagicLink) => {
     try {
-      const { data } = await Http.post(
-        baseUrl(null).validate,
-        {
-          ...removeUndefined({
-            auth_validation_token,
-            auth_request_id,
-            nonce,
-            ip_address,
-            user_agent
-          })
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await FetchFunction.post(baseUrl(null).validate, {
+        ...removeUndefined({
+          auth_validation_token,
+          auth_request_id,
+          nonce,
+          ip_address,
+          user_agent
+        })
+      });
+
       return data;
     } catch (err) {
       throw err;
     }
   },
 
-  startAuthMagicLink: async (
-    {
-      user_id,
-      username,
-      timeout_in_seconds = 29,
-      origin_location_data,
-      action_name,
-      short_msg,
-      auth_redirect_url,
-      context_data,
-      ip_address,
-      user_agent
-    }: IstartAuthMagicLink,
-    token: string
-  ) => {
+  startAuthMagicLink: async ({
+    user_id,
+    username,
+    timeout_in_seconds = 29,
+    origin_location_data,
+    action_name,
+    short_msg,
+    auth_redirect_url,
+    context_data,
+    ip_address,
+    user_agent
+  }: IstartAuthMagicLink) => {
     try {
-      const { data }: any = await Http.post(
-        baseUrl(null).start,
-        {
-          ...removeUndefined({
-            user_id,
-            username,
-            timeout_in_seconds,
-            origin_location_data,
-            action_name,
-            short_msg,
-            auth_redirect_url,
-            context_data,
-            ip_address,
-            token,
-            user_agent
-          })
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await FetchFunction.post(baseUrl(null).start, {
+        ...removeUndefined({
+          user_id,
+          username,
+          timeout_in_seconds,
+          origin_location_data,
+          action_name,
+          short_msg,
+          auth_redirect_url,
+          context_data,
+          ip_address,
+          user_agent
+        })
+      });
 
       return data;
     } catch (error) {

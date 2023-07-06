@@ -1,6 +1,7 @@
 import Http from "axios";
 import QueryString from "querystring";
 import config from "../../config";
+import { FetchFunction } from "../../helper/fetch";
 import { removeUndefined } from "../../helper/removeUndefined";
 import { context_data_props } from "../auth/magicLink";
 const baseUrl = (userId: string | null) => ({
@@ -49,93 +50,68 @@ export interface IupdateEmail {
 }
 
 export const userMagicLink = {
-  verifyMagicLinkEmail: async (
-    {
-      registration_validation_token,
-      ip_address,
-      user_agent
-    }: IverifyMagicLinkEmail,
-    token: string
-  ) => {
+  verifyMagicLinkEmail: async ({
+    registration_validation_token,
+    ip_address,
+    user_agent
+  }: IverifyMagicLinkEmail) => {
     try {
-      const { data } = await Http.post(
-        baseUrl(null).validate,
-        {
-          ...removeUndefined({
-            registration_validation_token,
-            ip_address,
-            user_agent
-          })
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await FetchFunction.post(baseUrl(null).validate, {
+        ...removeUndefined({
+          registration_validation_token,
+          ip_address,
+          user_agent
+        })
+      });
 
       return data;
     } catch (err) {
       throw err?.response?.data ?? err;
     }
   },
-  registerWithEmail: async (
-    {
-      email_address,
-      timeout_in_seconds = 299,
-      registration_redirect_url,
-      action_name = "Register",
-      short_msg = "Register to website with AuthArmor",
-      ip_address,
-      context_data,
-      user_agent
-    }: IregisterWithEmail,
-    token: string
-  ) => {
+  registerWithEmail: async ({
+    email_address,
+    timeout_in_seconds = 299,
+    registration_redirect_url,
+    action_name = "Register",
+    short_msg = "Register to website with AuthArmor",
+    ip_address,
+    context_data,
+    user_agent
+  }: IregisterWithEmail) => {
     try {
-      const { data }: any = await Http.post(
-        baseUrl(null).start,
-        {
-          ...removeUndefined({
-            email_address,
-            timeout_in_seconds,
-            registration_redirect_url,
-            action_name,
-            context_data,
-            short_msg,
-            ip_address,
-            user_agent
-          })
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const data = await FetchFunction.post(baseUrl(null).start, {
+        ...removeUndefined({
+          email_address,
+          timeout_in_seconds,
+          registration_redirect_url,
+          action_name,
+          context_data,
+          short_msg,
+          ip_address,
+          user_agent
+        })
+      });
 
       return data;
     } catch (err) {
       throw err?.response?.data ?? err;
     }
   },
-  linkEmailWithUserName: async (
-    {
-      username,
-      user_id,
-      email_address,
-      timeout_in_seconds = 3600,
-      registration_redirect_url,
-      context_data,
-      action_name = "Register",
-      short_msg = "Register to website with AuthArmor",
-      ip_address,
-      user_agent
-    }: IlinkEmailWithUserName,
-    token: string
-  ) => {
+  linkEmailWithUserName: async ({
+    username,
+    user_id,
+    email_address,
+    timeout_in_seconds = 3600,
+    registration_redirect_url,
+    context_data,
+    action_name = "Register",
+    short_msg = "Register to website with AuthArmor",
+    ip_address,
+    user_agent
+  }: IlinkEmailWithUserName) => {
     try {
-      const { data } = await Http.post(
+      const data = await FetchFunction.post(
         baseUrl(user_id).startExisting,
         {
           ...removeUndefined({
@@ -150,10 +126,7 @@ export const userMagicLink = {
           })
         },
         {
-          headers: {
-            "X-AuthArmor-UsernameValue": username,
-            Authorization: `Bearer ${token}`
-          }
+          "X-AuthArmor-UsernameValue": username
         }
       );
 
@@ -162,21 +135,18 @@ export const userMagicLink = {
       throw err?.response?.data ?? err;
     }
   },
-  updateEmail: async (
-    {
-      username,
-      user_id,
-      new_email_address,
-      timeout_in_seconds = 290,
-      registration_redirect_url,
-      action_name = "Update",
-      short_msg = "Update your email",
-      context_data
-    }: IupdateEmail,
-    token: string
-  ) => {
+  updateEmail: async ({
+    username,
+    user_id,
+    new_email_address,
+    timeout_in_seconds = 290,
+    registration_redirect_url,
+    action_name = "Update",
+    short_msg = "Update your email",
+    context_data
+  }: IupdateEmail) => {
     try {
-      const { data } = await Http.post(
+      const data = await FetchFunction.post(
         baseUrl(user_id).updateExisting,
         {
           ...removeUndefined({
@@ -189,10 +159,7 @@ export const userMagicLink = {
           })
         },
         {
-          headers: {
-            "X-AuthArmor-UsernameValue": username,
-            Authorization: `Bearer ${token}`
-          }
+          "X-AuthArmor-UsernameValue": username
         }
       );
 

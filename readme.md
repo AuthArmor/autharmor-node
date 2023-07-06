@@ -17,7 +17,7 @@ yarn add autharmor-node-sdk
 Import the module:
 
 ```ts
-import AuthArmorSDK from "autharmor-sdk";
+import { AuthArmorSDK } from "autharmor-sdk";
 ```
 
 Instantiate the module by passing in your Auth Armor API Key credentials:
@@ -49,19 +49,20 @@ This are options to initiate the process of enrolling new users for first time.
   - `sdk.verifyMagicLinkEmail` to validate the request once the user click on email and gets directed to your website
 
 ```js
-const [response,error] = await sdk.registerWithEmail({
+const response = await sdk.registerWithEmail({
   email_address,
   timeout_in_seconds,
-  registration_redirect_url,// https://your_website_domain/validation
+  registration_redirect_url, // https://your_website_domain/validation
   action_name,
   short_msg,
-  ip_addressm
+  ip_address,
   context_data: {
-  key:value},
-  user_agent,
-})
+    key: value
+  },
+  user_agent
+});
 /*
-if error is present then response is null otherwise error is null and reponse is as following
+response is 
 {
   timeout_in_seconds: number;
   timeout_utc_datetime: string;
@@ -136,13 +137,13 @@ if error is present then response is null otherwise error is null and reponse is
 - Validating the registration_redirect_url
 
 ```js
-const [response, error] = await sdk.verifyMagicLinkEmail({
+const response = await sdk.verifyMagicLinkEmail({
   registration_validation_token,
   ip_address,
   user_agent
 });
 /*
-if error is present then response is null otherwise error is null and reponse is as following
+response is 
 {
   magiclink_email_registration_type: "new_user";
   user_id: string;
@@ -193,13 +194,13 @@ if error is present then response is null otherwise error is null and reponse is
   - `sdk.checkRegistartion` Create a polling request to check until user is registered
 
 ```js
-const [response, error] = await sdk.registerWithAuthenticator({
+const response = await sdk.registerWithAuthenticator({
   username,
   reset_and_reinvite,
   revoke_previous_invites
 });
 /*
-if error is present then response is null otherwise error is null and reponse is as following
+response is 
 {
 
   username: string;
@@ -245,13 +246,13 @@ if error is present then response is null otherwise error is null and reponse is
  - ### check if user the registered
     - creates a polling request with time out in Seconds will give a response only if user is registered otherwise it will return an error
  ```js
-const [response,error] = await sdk.checkRegistartion({
+const response = await sdk.checkRegistartion({
  
   user_name: string,
   user_id: string,
 },  timeOutInSeconds)
 /*
-if error is present then response is null otherwise error is null and reponse is as following
+response is 
 {
 
 {
@@ -313,7 +314,7 @@ if error is present then response is null otherwise error is null and reponse is
 
 
 ```js
-const [response,error] = await sdk.startWebAuth({
+const response = await sdk.startWebAuth({
       username,
       email_address,
       timeout_in_seconds,
@@ -321,7 +322,7 @@ const [response,error] = await sdk.startWebAuth({
       attachment_type
 })
 /*
-if error is present then response is null otherwise error is null and reponse is as following
+response is
 {
 
   fido2_json_options: string;// will be used  to create Webauth credintials in front-end
@@ -377,7 +378,7 @@ if error is present then response is null otherwise error is null and reponse is
 - `sdk.finishWebRegister`
 
 ```js
-const [response, error] = await sdk.finishWebRegister({
+const response = await sdk.finishWebRegister({
   registration_id,
   aa_sig,
   authenticator_response_data,
@@ -385,7 +386,7 @@ const [response, error] = await sdk.finishWebRegister({
   fido2_registration_data
 });
 /*
-if error is present then response is null otherwise error is null and reponse is as following
+response is 
 {
 
   fido2_json_options: string;// will be used  to create Webauth credintials in front-end
@@ -445,7 +446,7 @@ if error is present then response is null otherwise error is null and reponse is
 - `sdk.validateWebAuth`
 
 ```js
-const [response, error] = await sdk.validateWebAuth({
+const response = await sdk.validateWebAuth({
   auth_validation_token,
   auth_request_id,
   ip_address,
@@ -500,7 +501,7 @@ const [response, error] = await sdk.validateWebAuth({
   - validate the request with `sdk.validateAuthMagicLink`
 
 ```js
-const [response, error] = await sdk.startAuthMagicLink({
+const response = await sdk.startAuthMagicLink({
       user_id,
       username,
       timeout_in_seconds = 29,
@@ -515,7 +516,7 @@ const [response, error] = await sdk.startAuthMagicLink({
 
 /*
 
-if error is present then response is null otherwise error is null and reponse is as following
+response is
 {
   auth_request_id: string;
   user_id: string;
@@ -608,7 +609,7 @@ if error is present then response is null otherwise error is null and reponse is
 - `sdk.verifyAuthPoll` will create the poll request that will return user data or an error
 
 ```js
-const [response, error] = await sdk.startAuth({
+const response = await sdk.startAuth({
       user_id,
       username,
       timeout_in_seconds = 29,
@@ -623,7 +624,7 @@ const [response, error] = await sdk.startAuth({
 
 /*
 
-if error is present then response is null otherwise error is null and reponse is as following
+response is
 {
   auth_request_id: string;
   user_id: string;
@@ -715,7 +716,7 @@ if error is present then response is null otherwise error is null and reponse is
   - `sdk.validateWebAuth` validate the auth request
 
 ```js
-const [response, error] = await sdk.startWebAuth({
+const response = await sdk.startWebAuth({
   user_id,
   username,
   webauthn_client_id,
@@ -730,7 +731,7 @@ const [response, error] = await sdk.startWebAuth({
 
 /*
 
-if error is present then response is null otherwise error is null and reponse is as following
+response is 
 {
 
   fido2_json_options: string;

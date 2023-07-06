@@ -1,6 +1,7 @@
 import Http from "axios";
 import QueryString from "querystring";
 import config from "../../config";
+import { FetchFunction } from "../../helper/fetch";
 import { removeUndefined } from "../../helper/removeUndefined";
 
 const baseUrl = (user_id: string | null) => ({
@@ -35,21 +36,15 @@ export interface IgetUserAuth {
   page_number?: number;
 }
 export const user = {
-  update: async (
-    { user_name, user_id, new_username }: IupdateUser,
-    token: string
-  ) => {
+  update: async ({ user_name, user_id, new_username }: IupdateUser) => {
     try {
-      const { data } = await Http.put(
+      const data = await FetchFunction.put(
         baseUrl(user_id).update,
         {
           new_username
         },
         {
-          headers: {
-            "X-AuthArmor-UsernameValue": user_name,
-            Authorization: `Bearer ${token}`
-          }
+          "X-AuthArmor-UsernameValue": user_name
         }
       );
 
@@ -58,13 +53,10 @@ export const user = {
       throw error?.response?.data ?? error;
     }
   },
-  get: async ({ user_name, user_id }: IgetUser, token: string) => {
+  get: async ({ user_name, user_id }: IgetUser) => {
     try {
-      const { data } = await Http.get(baseUrl(user_id).get, {
-        headers: {
-          "X-AuthArmor-UsernameValue": user_name,
-          Authorization: `Bearer ${token}`
-        }
+      const data = await FetchFunction.get(baseUrl(user_id).get, {
+        "X-AuthArmor-UsernameValue": user_name
       });
 
       return data;
@@ -72,16 +64,13 @@ export const user = {
       throw err;
     }
   },
-  getAll: async (
-    {
-      sort_column,
-      sort_direction,
-      page_size,
-      page_number,
-      user_filter_string
-    }: IgetAllUser,
-    token: string
-  ) => {
+  getAll: async ({
+    sort_column,
+    sort_direction,
+    page_size,
+    page_number,
+    user_filter_string
+  }: IgetAllUser) => {
     try {
       const filteredObject = removeUndefined({
         sort_column,
@@ -94,28 +83,21 @@ export const user = {
         Object.keys(filteredObject).length > 0
           ? "?" + QueryString.stringify(filteredObject)
           : "";
-      const { data } = await Http.get(baseUrl(null).getAll + queryString, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const data = await FetchFunction.get(baseUrl(null).getAll + queryString);
 
       return data;
     } catch (err) {
       throw err?.response?.data ?? err;
     }
   },
-  getUserAuth: async (
-    {
-      user_name,
-      user_id,
-      sort_column,
-      sort_direction,
-      page_size,
-      page_number
-    }: IgetUserAuth,
-    token: string
-  ) => {
+  getUserAuth: async ({
+    user_name,
+    user_id,
+    sort_column,
+    sort_direction,
+    page_size,
+    page_number
+  }: IgetUserAuth) => {
     try {
       const filteredObject = removeUndefined({
         sort_column,
@@ -127,13 +109,10 @@ export const user = {
         Object.keys(filteredObject).length > 0
           ? "?" + QueryString.stringify(filteredObject)
           : "";
-      const { data } = await Http.get(
-        baseUrl(user_id).getUserAuth + +queryString,
+      const data = await FetchFunction.get(
+        baseUrl(user_id).getUserAuth + queryString,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "X-AuthArmor-UsernameValue": user_name
-          }
+          "X-AuthArmor-UsernameValue": user_name
         }
       );
 

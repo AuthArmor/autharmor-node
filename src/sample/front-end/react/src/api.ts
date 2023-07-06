@@ -4,8 +4,8 @@ export const signUserIn = async (email: string) => {
       method: "POST",
       body: JSON.stringify({ email_address: email }),
       headers: {
-        "Content-Type": "application/json",
-      },
+        "Content-Type": "application/json"
+      }
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -22,9 +22,9 @@ export const validateUser = async (registration_validation_token: string) => {
     const response = await fetch("your_api_link/emailvaldiate", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ registration_validation_token }),
+      body: JSON.stringify({ registration_validation_token })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -37,15 +37,15 @@ export const validateUser = async (registration_validation_token: string) => {
 };
 export const validateAuthAuthneticator = async ({
   auth_validation_token,
-  auth_request_id,
-}) => {
+  auth_request_id
+}: any) => {
   try {
     const response = await fetch("your_api_link/validateAuth", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ auth_validation_token, auth_request_id }),
+      body: JSON.stringify({ auth_validation_token, auth_request_id })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -61,9 +61,9 @@ export const registerWithAuthenticator = async (username: string) => {
     const response = await fetch("your_api_link/registerWithAuthenticator", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ username, authRequest: false }),
+      body: JSON.stringify({ username, authRequest: false })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -79,9 +79,9 @@ export const signUserInAuthenticate = async (username: string) => {
     const response = await fetch("your_api_link/auth", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ username, authRequest: false }),
+      body: JSON.stringify({ username, authRequest: false })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -96,20 +96,20 @@ export const checkIfRegisteredWithServerPolling = async ({
   registration_id,
   user_id,
   username,
-  timeOutInSeconds,
+  timeOutInSeconds
 }: any) => {
   try {
     const response = await fetch("your_api_link/isregistered", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         registration_id,
         timeOutInSeconds,
         user_id,
-        username,
-      }),
+        username
+      })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -125,9 +125,9 @@ export const authUserWithEmail = async (username: string, page: boolean) => {
     const response = await fetch("your_api_link/emailauth", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify({ username: username, page: page }),
+      body: JSON.stringify({ username: username, page: page })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -145,13 +145,13 @@ export const startAuth = async (body: any) => {
     const response = await fetch("your_api_link/auth", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         username,
         user_id,
-        authRequest,
-      }),
+        authRequest
+      })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -169,12 +169,12 @@ export const startAuthvalidationWithServerPoll = async (body: any) => {
     const response = await fetch("your_api_link/validateAuth", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         auth_validation_token,
-        auth_request_id,
-      }),
+        auth_request_id
+      })
     });
     if (response.status == 200) {
       return [await response.json(), null];
@@ -192,12 +192,12 @@ export const validateAuthEmail = async (username: any, authOrSign: boolean) => {
     const response = await fetch("your_api_link/emailauthvalidate", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         auth_validation_token,
-        auth_request_id,
-      }),
+        auth_request_id
+      })
     });
     if (response.status == 200) {
       return [await response.json(), null];
