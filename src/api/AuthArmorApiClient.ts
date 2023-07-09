@@ -78,7 +78,7 @@ export class AuthArmorApiClient {
         webAuthnClientId,
         actionName = null,
         shortMessage = null
-    }: Partial<IStartWebAuthnAuthenticationRequest>): Promise<IWebAuthnAuthenticationRequest> {
+    }: IStartWebAuthnAuthenticationRequest): Promise<IWebAuthnAuthenticationRequest> {
         return await this.fetchAsync<IWebAuthnAuthenticationRequest>(
             "/auth/webauthn/start",
             "post",
@@ -125,7 +125,7 @@ export class AuthArmorApiClient {
         nonce = null
     }: IStartMagicLinkEmailAuthenticationRequest): Promise<IMagicLinkEmailAuthenticationRequest> {
         return await this.fetchAsync<IMagicLinkEmailAuthenticationRequest>(
-            "/auth/authenticator/start",
+            "/auth/magiclink_email/start",
             "post",
             {
                 user_id: userId,
