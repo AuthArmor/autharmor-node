@@ -8,6 +8,8 @@ import {
     IAuthenticatorAuthenticationRequest,
     IFinishedWebAuthnAuthenticationRequest,
     IMagicLinkEmailAuthenticationRequest,
+    IUser,
+    IUserProfile,
     IWebAuthnAuthenticationRequest
 } from "./models";
 import { ApiError } from "./errors";
@@ -166,28 +168,37 @@ export class AuthArmorApiClient {
         return await this.fetchAsync<IAuthInfo>(`/auth/${authRequestId}`);
     }
 
+    public async getUserByIdAsync(userId: string, username: string): Promise<IUser> {
+        return await this.fetchAsync<IUser>(`/users/${userId}`, "get", undefined, {
+            "X-AuthArmor-UsernameValue": username
+        });
+    }
+
     private async fetchAsync<TResponse, TPayload extends {} = {}>(
         relativeUrl: string,
         method: "get" | "post" = "get",
-        payload?: TPayload
+        payload?: TPayload,
+        headers?: Record<string, string>
     ): Promise<TResponse> {
         await this.ensureAuthTokenValidity();
 
         const url = `${this.apiBaseUrl}${relativeUrl}`;
 
-        const headers: HeadersInit = {
+        const finalHeaders: HeadersInit = {
+            ...headers,
+            Accept: "application/json",
             Authorization: `${this.currentAuthToken.token_type} ${this.currentAuthToken.access_token}`
         };
 
         const body = payload !== undefined ? JSON.stringify(payload ?? {}) : null;
 
         if (body !== null) {
-            headers["Content-Type"] = "application/json";
+            finalHeaders["Content-Type"] = "application/json";
         }
 
         const options: RequestInit = {
             method,
-            headers,
+            headers: finalHeaders,
             body
         };
 
