@@ -2,8 +2,9 @@ import fetch, { HeadersInit, RequestInit } from "node-fetch";
 import { environment } from "../environment";
 import { IAuthArmorClientConfiguration } from "./config";
 import { ISystemClock, NativeSystemClock } from "../infrastructure";
-import { IAuthInfo, IAuthTokenInfo } from "./models";
+import { IAuthInfo, IAuthTokenInfo, IAuthenticatorAuthenticationRequest } from "./models";
 import { ApiError } from "./errors";
+import { IStartAuthenticatorAuthenticationRequest } from "./requests";
 
 export class AuthArmorApiClient {
     private readonly apiBaseUrl: string;
@@ -18,6 +19,38 @@ export class AuthArmorApiClient {
     ) {
         this.apiBaseUrl = configuration.apiBaseUrl ?? environment.defaultApiBaseUrl;
         this.logInBaseUrl = configuration.logInBaseUrl ?? environment.defaultLogInBaseUrl;
+    }
+
+    public async startAuthenticatorAuthenticationAsync({
+        userId = null,
+        username = null,
+        timeoutSeconds = null,
+        originLocationData = null,
+        ipAddress = null,
+        userAgent = null,
+        nonce = null,
+        sendPushNotification = false,
+        useVisualVerify = false,
+        actionName = null,
+        shortMessage = null
+    }: Partial<IStartAuthenticatorAuthenticationRequest>): Promise<IAuthenticatorAuthenticationRequest> {
+        return await this.fetchAsync<IAuthenticatorAuthenticationRequest>(
+            "/auth/authenticator/start",
+            "post",
+            {
+                user_id: userId,
+                username,
+                timeout_in_seconds: timeoutSeconds,
+                origin_location_data: originLocationData,
+                ip_address: ipAddress,
+                user_agent: userAgent,
+                nonce,
+                send_push: sendPushNotification,
+                use_visual_verify: useVisualVerify,
+                action_name: actionName,
+                short_msg: shortMessage
+            }
+        );
     }
 
     public async getAuthInfoAsync(authRequestId: string): Promise<IAuthInfo> {

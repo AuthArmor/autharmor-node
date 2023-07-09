@@ -1,4 +1,5 @@
 import { AuthMethod, IAuthMethod } from "./IAuthMethod";
+import { IOriginLocationData } from "./IOriginLocationData";
 import { ISecureSignedMessage } from "./ISecureSignedMessage";
 
 export interface IAuthDetails {
@@ -24,12 +25,6 @@ export interface IResponseDetails {
 export interface IMobileDeviceDetails {
     platform: string | null;
     model: string | null;
-}
-
-export interface IOriginLocationData {
-    latitude: string | null;
-    longitude: string | null;
-    ip_address: string | null;
 }
 
 export interface IAuthProfileDetails {
