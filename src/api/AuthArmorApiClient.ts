@@ -2,9 +2,17 @@ import fetch, { HeadersInit, RequestInit } from "node-fetch";
 import { environment } from "../environment";
 import { IAuthArmorClientConfiguration } from "./config";
 import { ISystemClock, NativeSystemClock } from "../infrastructure";
-import { IAuthInfo, IAuthTokenInfo, IAuthenticatorAuthenticationRequest } from "./models";
+import {
+    IAuthInfo,
+    IAuthTokenInfo,
+    IAuthenticatorAuthenticationRequest,
+    IWebAuthnAuthenticationRequest
+} from "./models";
 import { ApiError } from "./errors";
-import { IStartAuthenticatorAuthenticationRequest } from "./requests";
+import {
+    IStartAuthenticatorAuthenticationRequest,
+    IStartWebAuthnAuthenticationRequest
+} from "./requests";
 
 export class AuthArmorApiClient {
     private readonly apiBaseUrl: string;
@@ -33,7 +41,7 @@ export class AuthArmorApiClient {
         useVisualVerify = false,
         actionName = null,
         shortMessage = null
-    }: Partial<IStartAuthenticatorAuthenticationRequest>): Promise<IAuthenticatorAuthenticationRequest> {
+    }: IStartAuthenticatorAuthenticationRequest): Promise<IAuthenticatorAuthenticationRequest> {
         return await this.fetchAsync<IAuthenticatorAuthenticationRequest>(
             "/auth/authenticator/start",
             "post",
@@ -47,6 +55,36 @@ export class AuthArmorApiClient {
                 nonce,
                 send_push: sendPushNotification,
                 use_visual_verify: useVisualVerify,
+                action_name: actionName,
+                short_msg: shortMessage
+            }
+        );
+    }
+
+    public async startWebAuthnAuthenticationAsync({
+        userId = null,
+        username = null,
+        timeoutSeconds = null,
+        originLocationData = null,
+        ipAddress = null,
+        userAgent = null,
+        nonce = null,
+        webAuthnClientId,
+        actionName = null,
+        shortMessage = null
+    }: Partial<IStartWebAuthnAuthenticationRequest>): Promise<IWebAuthnAuthenticationRequest> {
+        return await this.fetchAsync<IWebAuthnAuthenticationRequest>(
+            "/auth/webauthn/start",
+            "post",
+            {
+                user_id: userId,
+                username,
+                timeout_in_seconds: timeoutSeconds,
+                origin_location_data: originLocationData,
+                ip_address: ipAddress,
+                user_agent: userAgent,
+                nonce,
+                webauthn_client_id: webAuthnClientId,
                 action_name: actionName,
                 short_msg: shortMessage
             }
