@@ -1,11 +1,9 @@
 import { defineConfig } from "rollup";
 import babel from "@rollup/plugin-babel";
 import nodeResolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import { existsSync, rmSync } from "node:fs";
 import ts from "typescript";
-import requireJSON5 from "require-json5";
-
-const pkg = requireJSON5("./package.json")
 
 rmSync("dist", {
     force: true,
@@ -27,13 +25,16 @@ export default defineConfig({
     plugins: [
         babel({
             extensions: [".js", ".ts"],
-            babelHelpers: "bundled",
+            babelHelpers: "inline",
             presets: [
                 "@babel/preset-typescript",
-                ["@babel/preset-env", { bugfixes: true, targets: pkg.browserslist }]
+                ["@babel/preset-env", { bugfixes: true, targets: { node: 18 } }]
             ]
         }),
         nodeResolve({
+            extensions: [".js", ".ts"]
+        }),
+        commonjs({
             extensions: [".js", ".ts"]
         }),
         {
@@ -56,5 +57,6 @@ export default defineConfig({
                 }).emit();
             }
         }
-    ]
+    ],
+    external: ["node-fetch"]
 });
