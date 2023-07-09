@@ -6,11 +6,13 @@ import {
     IAuthInfo,
     IAuthTokenInfo,
     IAuthenticatorAuthenticationRequest,
+    IMagicLinkEmailAuthenticationRequest,
     IWebAuthnAuthenticationRequest
 } from "./models";
 import { ApiError } from "./errors";
 import {
     IStartAuthenticatorAuthenticationRequest,
+    IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest
 } from "./requests";
 
@@ -87,6 +89,30 @@ export class AuthArmorApiClient {
                 webauthn_client_id: webAuthnClientId,
                 action_name: actionName,
                 short_msg: shortMessage
+            }
+        );
+    }
+
+    public async startMagicLinkEmailAuthenticationAsync({
+        userId = null,
+        username = null,
+        timeoutSeconds = null,
+        originLocationData = null,
+        ipAddress = null,
+        userAgent = null,
+        nonce = null
+    }: IStartMagicLinkEmailAuthenticationRequest): Promise<IMagicLinkEmailAuthenticationRequest> {
+        return await this.fetchAsync<IMagicLinkEmailAuthenticationRequest>(
+            "/auth/authenticator/start",
+            "post",
+            {
+                user_id: userId,
+                username,
+                timeout_in_seconds: timeoutSeconds,
+                origin_location_data: originLocationData,
+                ip_address: ipAddress,
+                user_agent: userAgent,
+                nonce
             }
         );
     }

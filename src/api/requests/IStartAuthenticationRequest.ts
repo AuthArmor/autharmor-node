@@ -22,3 +22,5 @@ export interface IStartWebAuthnAuthenticationRequest extends IStartAuthenticatio
     actionName?: string | null;
     shortMessage?: string | null;
 }
+
+export interface IStartMagicLinkEmailAuthenticationRequest extends IStartAuthenticationRequest {}
