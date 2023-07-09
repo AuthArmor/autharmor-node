@@ -5,3 +5,4 @@ export * from "./IAuthMethod";
 export * from "./IAuthTokenInfo";
 export * from "./IOriginLocationData";
 export * from "./ISecureSignedMessage";
+export * from "./IUserProfile";
