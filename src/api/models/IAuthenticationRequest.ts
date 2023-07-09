@@ -20,4 +20,11 @@ export interface IWebAuthnAuthenticationRequest {
     aa_guid: string;
 }
 
+export interface IFinishedWebAuthnAuthenticationRequest {
+    auth_request_id: string;
+    auth_validation_token: string | null;
+    user_id: string;
+    username: string;
+}
+
 export interface IMagicLinkEmailAuthenticationRequest extends IAuthenticationRequest {}

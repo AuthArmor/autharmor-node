@@ -6,11 +6,13 @@ import {
     IAuthInfo,
     IAuthTokenInfo,
     IAuthenticatorAuthenticationRequest,
+    IFinishedWebAuthnAuthenticationRequest,
     IMagicLinkEmailAuthenticationRequest,
     IWebAuthnAuthenticationRequest
 } from "./models";
 import { ApiError } from "./errors";
 import {
+    IFinishWebAuthnAuthenticationRequest,
     IStartAuthenticatorAuthenticationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest
@@ -89,6 +91,24 @@ export class AuthArmorApiClient {
                 webauthn_client_id: webAuthnClientId,
                 action_name: actionName,
                 short_msg: shortMessage
+            }
+        );
+    }
+
+    public async finishWebAuthnAuthenticationAsync({
+        requestId = null,
+        webAuthnClientId = null,
+        authenticatorResponseData = null,
+        authArmorSignature = null
+    }: IFinishWebAuthnAuthenticationRequest): Promise<IFinishedWebAuthnAuthenticationRequest> {
+        return await this.fetchAsync<IFinishedWebAuthnAuthenticationRequest>(
+            "/auth/webauthn/start",
+            "post",
+            {
+                auth_request_id: requestId,
+                webauthn_client_id: webAuthnClientId,
+                authenticator_response_data: authenticatorResponseData,
+                aa_sig: authArmorSignature
             }
         );
     }
