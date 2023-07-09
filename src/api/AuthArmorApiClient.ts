@@ -2,7 +2,7 @@ import fetch, { HeadersInit, RequestInit } from "node-fetch";
 import { environment } from "../environment";
 import { IAuthArmorClientConfiguration } from "./config";
 import { ISystemClock, NativeSystemClock } from "../infrastructure";
-import { IAuthTokenInfo } from "./models";
+import { IAuthInfo, IAuthTokenInfo } from "./models";
 import { ApiError } from "./errors";
 
 export class AuthArmorApiClient {
@@ -18,6 +18,10 @@ export class AuthArmorApiClient {
     ) {
         this.apiBaseUrl = configuration.apiBaseUrl ?? environment.defaultApiBaseUrl;
         this.logInBaseUrl = configuration.logInBaseUrl ?? environment.defaultLogInBaseUrl;
+    }
+
+    public async getAuthInfoAsync(authRequestId: string): Promise<IAuthInfo> {
+        return await this.fetchAsync<IAuthInfo>(`/auth/${authRequestId}`);
     }
 
     private async fetchAsync<TResponse, TPayload extends {} = {}>(
