@@ -17,6 +17,8 @@ import {
     IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest
 } from "./requests";
+import { IAuthenticationValidation } from "./models/IAuthenticationValidation";
+import { IValidateAuthenticationRequest } from "./requests/IValidateAuthenticationRequest";
 
 export class AuthArmorApiClient {
     private readonly apiBaseUrl: string;
@@ -130,6 +132,29 @@ export class AuthArmorApiClient {
                 username,
                 timeout_in_seconds: timeoutSeconds,
                 origin_location_data: originLocationData,
+                ip_address: ipAddress,
+                user_agent: userAgent,
+                nonce
+            }
+        );
+    }
+
+    public async validateAuthenticationAsync(
+        authMethod: "authenticator" | "webauthn" | "magiclink_email",
+        {
+            requestId,
+            validationToken,
+            ipAddress = null,
+            userAgent = null,
+            nonce = null
+        }: IValidateAuthenticationRequest
+    ): Promise<IAuthenticationValidation> {
+        return await this.fetchAsync<IAuthenticationValidation>(
+            `/auth/${authMethod}/validate`,
+            "post",
+            {
+                auth_request_id: requestId,
+                auth_validation_token: validationToken,
                 ip_address: ipAddress,
                 user_agent: userAgent,
                 nonce
