@@ -168,8 +168,12 @@ export class AuthArmorApiClient {
         return await this.fetchAsync<IAuthInfo>(`/auth/${authRequestId}`);
     }
 
-    public async getUserByIdAsync(userId: string, username: string): Promise<IUser> {
-        return await this.fetchAsync<IUser>(`/users/${userId}`, "get", undefined, {
+    public async getUserByIdAsync(userId: string): Promise<IUser> {
+        return await this.fetchAsync<IUser>(`/users/${userId}`);
+    }
+
+    public async getUserByUsernameAsync(username: string): Promise<IUser> {
+        return await this.fetchAsync<IUser>(`/users/00000000-0000-0000-0000-000000000000`, "get", undefined, {
             "X-AuthArmor-UsernameValue": username
         });
     }
