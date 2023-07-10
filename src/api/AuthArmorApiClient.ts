@@ -172,12 +172,21 @@ export class AuthArmorApiClient {
         return await this.fetchAsync<IAuthInfo>(`/auth/${authRequestId}`);
     }
 
-    public async listUsersAsync(pagingOptions: IPagingRequest<IUserProfile>, filter?: string): Promise<IUsersList> {
+    public async listUsersAsync(
+        pagingOptions: IPagingRequest<IUserProfile>,
+        filter?: string
+    ): Promise<IUsersList> {
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
-        return await this.fetchAsync<IUsersList>(`/users?${pagingQuery}`, "get", undefined, filter && {
-            "X-AuthArmor-UserFilterString": filter
-        } || undefined);
+        return await this.fetchAsync<IUsersList>(
+            `/users?${pagingQuery}`,
+            "get",
+            undefined,
+            (filter && {
+                "X-AuthArmor-UserFilterString": filter
+            }) ||
+                undefined
+        );
     }
 
     public async getUserByIdAsync(userId: string): Promise<IUser> {
@@ -185,20 +194,29 @@ export class AuthArmorApiClient {
     }
 
     public async getUserByUsernameAsync(username: string): Promise<IUser> {
-        return await this.fetchAsync<IUser>(`/users/00000000-0000-0000-0000-000000000000`, "get", undefined, {
-            "X-AuthArmor-UsernameValue": username
-        });
+        return await this.fetchAsync<IUser>(
+            `/users/00000000-0000-0000-0000-000000000000`,
+            "get",
+            undefined,
+            {
+                "X-AuthArmor-UsernameValue": username
+            }
+        );
     }
 
-    public async updateUserAsync(userId: string, {
-        username = null
-    }: IUpdateUserRequest): Promise<IUserProfile> {
+    public async updateUserAsync(
+        userId: string,
+        { username = null }: IUpdateUserRequest
+    ): Promise<IUserProfile> {
         return await this.fetchAsync<IUserProfile>(`/users/${userId}`, "put", {
             new_username: username
         });
     }
 
-    public async getUserAuthHistoryAsync(userId: string, pagingOptions: IPagingRequest<IAuthInfo>): Promise<IAuthHistory> {
+    public async getUserAuthHistoryAsync(
+        userId: string,
+        pagingOptions: IPagingRequest<IAuthInfo>
+    ): Promise<IAuthHistory> {
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
         return await this.fetchAsync<IAuthHistory>(`/users/${userId}/auth_history?${pagingQuery}`);
@@ -268,7 +286,7 @@ export class AuthArmorApiClient {
         if (
             this.currentAuthToken !== null &&
             this.systemClock.now().getTime() <
-            this.currentAuthTokenIssueTime + this.currentAuthToken.expires_in * 1000
+                this.currentAuthTokenIssueTime + this.currentAuthToken.expires_in * 1000
         )
             return;
 

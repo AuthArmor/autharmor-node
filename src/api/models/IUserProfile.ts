@@ -11,6 +11,6 @@ export interface IUser extends IUserProfile {
 
 export interface IEnrolledAuthMethod {
     auth_method_id: number;
-    auth_method_name: string | null
+    auth_method_name: string | null;
     auth_method_masked_info: string | null;
 }
