@@ -15,11 +15,13 @@ import {
     IUserProfile,
     IWebAuthnAuthenticationRequest,
     IUsersList,
-    IWebAuthnUserRegistration
+    IWebAuthnUserRegistration,
+    IRegistrationResult
 } from "./models";
 import { ApiError } from "./errors";
 import {
     IFinishWebAuthnAuthenticationRequest,
+    IFinishWebAuthnRegistrationRequest,
     IPagingRequest,
     IStartAuthenticatorAuthenticationRequest,
     IStartAuthenticatorUserRegistrationRequest,
@@ -253,19 +255,34 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async finishWebAuthnUserRegistrationAsync({
+        registrationId,
+        authArmorSignature,
+        webAuthnClientId,
+        authenticatorResponseData,
+        fido2RegistrationData
+    }: IFinishWebAuthnRegistrationRequest): Promise<IRegistrationResult> {
+        return await this.fetchAsync<IRegistrationResult>(
+            "/users/webauthn/register/finish",
+            "post",
+            {
+                registration_id: registrationId,
+                aa_sig: authArmorSignature,
+                webauthn_client_id: webAuthnClientId,
+                authenticator_response_data: authenticatorResponseData,
+                fido2_registration_data: fido2RegistrationData
+            }
+        );
+    }
+
     public async getUserByIdAsync(userId: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(`/users/${userId}`);
     }
 
     public async getUserByUsernameAsync(username: string): Promise<IUser> {
-        return await this.fetchAsync<IUser>(
-            `/users/${blankUserId}`,
-            "get",
-            undefined,
-            {
-                "X-AuthArmor-UsernameValue": username
-            }
-        );
+        return await this.fetchAsync<IUser>(`/users/${blankUserId}`, "get", undefined, {
+            "X-AuthArmor-UsernameValue": username
+        });
     }
 
     public async updateUserAsync(
