@@ -3,6 +3,7 @@ import { environment } from "../environment";
 import { IAuthArmorClientConfiguration } from "./config";
 import { ISystemClock, NativeSystemClock } from "../infrastructure";
 import {
+    IAuthHistory,
     IAuthInfo,
     IAuthTokenInfo,
     IAuthenticationValidation,
@@ -197,6 +198,12 @@ export class AuthArmorApiClient {
         });
     }
 
+    public async getUserAuthHistoryAsync(userId: string, pagingOptions: IPagingRequest<IAuthInfo>): Promise<IAuthHistory> {
+        const pagingQuery = this.getPagingQuery(pagingOptions);
+
+        return await this.fetchAsync<IAuthHistory>(`/users/${userId}/auth_history?${pagingQuery}`);
+    }
+
     private getPagingQuery<T>(pagingRequest: IPagingRequest<T>): string {
         const searchParamMappings = {
             pageNumber: "page_number",
@@ -204,7 +211,7 @@ export class AuthArmorApiClient {
             sortDirection: "sort_direction",
             sortColumn: "sort_column"
         };
-    
+
         const searchParams = new URLSearchParams();
 
         for (const [requestKey, paramName] of Object.entries(searchParamMappings)) {
