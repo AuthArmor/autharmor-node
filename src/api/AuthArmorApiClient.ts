@@ -17,7 +17,8 @@ import {
     IFinishWebAuthnAuthenticationRequest,
     IStartAuthenticatorAuthenticationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
-    IStartWebAuthnAuthenticationRequest
+    IStartWebAuthnAuthenticationRequest,
+    IUpdateUserRequest
 } from "./requests";
 import { IAuthenticationValidation } from "./models/IAuthenticationValidation";
 import { IValidateAuthenticationRequest } from "./requests/IValidateAuthenticationRequest";
@@ -185,9 +186,17 @@ export class AuthArmorApiClient {
         });
     }
 
+    public async updateUserAsync(userId: string, {
+        username
+    }: IUpdateUserRequest): Promise<IUserProfile> {
+        return await this.fetchAsync<IUserProfile>(`/users/${userId}`, "put", {
+            new_username: username
+        });
+    }
+
     private async fetchAsync<TResponse, TPayload extends {} = {}>(
         relativeUrl: string,
-        method: "get" | "post" = "get",
+        method: "get" | "post" | "put" = "get",
         payload?: TPayload,
         headers?: Record<string, string>
     ): Promise<TResponse> {
@@ -228,7 +237,7 @@ export class AuthArmorApiClient {
         if (
             this.currentAuthToken !== null &&
             this.systemClock.now().getTime() <
-                this.currentAuthTokenIssueTime + this.currentAuthToken.expires_in * 1000
+            this.currentAuthTokenIssueTime + this.currentAuthToken.expires_in * 1000
         )
             return;
 
