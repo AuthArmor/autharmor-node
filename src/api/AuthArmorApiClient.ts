@@ -14,7 +14,8 @@ import {
     IUser,
     IUserProfile,
     IWebAuthnAuthenticationRequest,
-    IUsersList
+    IUsersList,
+    IWebAuthnUserRegistration
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -24,6 +25,7 @@ import {
     IStartAuthenticatorUserRegistrationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest,
+    IStartWebAuthnUserRegistrationRequest,
     IUpdateUserRequest,
     IValidateAuthenticationRequest
 } from "./requests";
@@ -227,6 +229,26 @@ export class AuthArmorApiClient {
             undefined,
             {
                 "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
+    public async startWebAuthnUserRegistrationAsync({
+        username = null,
+        emailAddress = null,
+        webAuthnClientId,
+        webAuthnAttachmentType = "Any",
+        timeoutSeconds = null
+    }: IStartWebAuthnUserRegistrationRequest): Promise<IWebAuthnUserRegistration> {
+        return await this.fetchAsync<IWebAuthnUserRegistration>(
+            "/users/webauthn/register/start",
+            "post",
+            {
+                username,
+                email_address: emailAddress,
+                webauthn_client_id: webAuthnClientId,
+                attachment_type: webAuthnAttachmentType,
+                timeout_in_seconds: timeoutSeconds
             }
         );
     }

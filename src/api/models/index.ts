@@ -10,3 +10,4 @@ export * from "./IOriginLocationData";
 export * from "./ISecureSignedMessage";
 export * from "./IUserProfile";
 export * from "./IUsersList";
+export * from "./IWebAuthnUserRegistration";
