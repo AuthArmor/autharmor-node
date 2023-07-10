@@ -8,6 +8,7 @@ import {
     IAuthTokenInfo,
     IAuthenticationValidation,
     IAuthenticatorAuthenticationRequest,
+    IAuthenticatorUserRegistration,
     IFinishedWebAuthnAuthenticationRequest,
     IMagicLinkEmailAuthenticationRequest,
     IUser,
@@ -19,6 +20,7 @@ import {
     IFinishWebAuthnAuthenticationRequest,
     IPagingRequest,
     IStartAuthenticatorAuthenticationRequest,
+    IStartAuthenticatorUserRegistrationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest,
     IUpdateUserRequest,
@@ -189,6 +191,22 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async startAuthenticatorUserRegistrationAsync({
+        username,
+        resetAndReinvite = false,
+        revokePreviousInvites = false
+    }: IStartAuthenticatorUserRegistrationRequest): Promise<IAuthenticatorUserRegistration> {
+        return await this.fetchAsync<IAuthenticatorUserRegistration>(
+            `/users/authenticator/register/start`,
+            "post",
+            {
+                username,
+                reset_and_reinvite: resetAndReinvite,
+                revoke_previous_invites: revokePreviousInvites
+            }
+        );
+    }
+
     public async getUserByIdAsync(userId: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(`/users/${userId}`);
     }
@@ -213,6 +231,22 @@ export class AuthArmorApiClient {
         });
     }
 
+    public async updateUserByUsernameAsync(
+        username: string,
+        { username: newUsername = null }: IUpdateUserRequest
+    ): Promise<IUserProfile> {
+        return await this.fetchAsync<IUserProfile>(
+            `/users/00000000-0000-0000-0000-000000000000`,
+            "put",
+            {
+                new_username: newUsername
+            },
+            {
+                "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
     public async getUserAuthHistoryAsync(
         userId: string,
         pagingOptions: IPagingRequest<IAuthInfo>
@@ -220,6 +254,22 @@ export class AuthArmorApiClient {
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
         return await this.fetchAsync<IAuthHistory>(`/users/${userId}/auth_history?${pagingQuery}`);
+    }
+
+    public async getUserAuthHistoryByUsernameAsync(
+        username: string,
+        pagingOptions: IPagingRequest<IAuthInfo>
+    ): Promise<IAuthHistory> {
+        const pagingQuery = this.getPagingQuery(pagingOptions);
+
+        return await this.fetchAsync<IAuthHistory>(
+            `/users/00000000-0000-0000-0000-000000000000/auth_history?${pagingQuery}`,
+            "get",
+            undefined,
+            {
+                "X-AuthArmor-UsernameValue": username
+            }
+        );
     }
 
     private getPagingQuery<T>(pagingRequest: IPagingRequest<T>): string {
