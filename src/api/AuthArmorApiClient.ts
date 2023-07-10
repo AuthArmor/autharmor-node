@@ -16,6 +16,7 @@ import {
 import { ApiError } from "./errors";
 import {
     IFinishWebAuthnAuthenticationRequest,
+    IPagingRequest,
     IStartAuthenticatorAuthenticationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest,
@@ -170,8 +171,10 @@ export class AuthArmorApiClient {
         return await this.fetchAsync<IAuthInfo>(`/auth/${authRequestId}`);
     }
 
-    public async listUsersAsync(filter?: string): Promise<IUsersList> {
-        return await this.fetchAsync<IUsersList>(`/users`, "get", undefined, filter && {
+    public async listUsersAsync(pagingOptions: IPagingRequest<IUserProfile>, filter?: string): Promise<IUsersList> {
+        const pagingQuery = this.getPagingQuery(pagingOptions);
+
+        return await this.fetchAsync<IUsersList>(`/users?${pagingQuery}`, "get", undefined, filter && {
             "X-AuthArmor-UserFilterString": filter
         } || undefined);
     }
@@ -192,6 +195,27 @@ export class AuthArmorApiClient {
         return await this.fetchAsync<IUserProfile>(`/users/${userId}`, "put", {
             new_username: username
         });
+    }
+
+    private getPagingQuery<T>(pagingRequest: IPagingRequest<T>): string {
+        const searchParamMappings = {
+            pageNumber: "page_number",
+            pageSize: "page_size",
+            sortDirection: "sort_direction",
+            sortColumn: "sort_column"
+        };
+    
+        const searchParams = new URLSearchParams();
+
+        for (const [requestKey, paramName] of Object.entries(searchParamMappings)) {
+            const paramValue = pagingRequest[requestKey as keyof typeof pagingRequest];
+
+            if (paramValue !== undefined) {
+                searchParams.append(paramName, paramValue.toString());
+            }
+        }
+
+        return searchParams.toString();
     }
 
     private async fetchAsync<TResponse, TPayload extends {} = {}>(
