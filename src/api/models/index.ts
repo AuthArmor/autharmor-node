@@ -1,5 +1,6 @@
 export * from "./IAuthDetails";
 export * from "./IAuthenticationRequest";
+export * from "./IAuthenticationValidation";
 export * from "./IAuthInfo";
 export * from "./IAuthMethod";
 export * from "./IAuthTokenInfo";
