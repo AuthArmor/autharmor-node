@@ -21,6 +21,7 @@ import {
 } from "./requests";
 import { IAuthenticationValidation } from "./models/IAuthenticationValidation";
 import { IValidateAuthenticationRequest } from "./requests/IValidateAuthenticationRequest";
+import { IUsersList } from "./models/IUsersList";
 
 export class AuthArmorApiClient {
     private readonly apiBaseUrl: string;
@@ -166,6 +167,12 @@ export class AuthArmorApiClient {
 
     public async getAuthInfoAsync(authRequestId: string): Promise<IAuthInfo> {
         return await this.fetchAsync<IAuthInfo>(`/auth/${authRequestId}`);
+    }
+
+    public async listUsersAsync(filter?: string): Promise<IUsersList> {
+        return await this.fetchAsync<IUsersList>(`/users`, "get", undefined, filter && {
+            "X-AuthArmor-UserFilterString": filter
+        } || undefined);
     }
 
     public async getUserByIdAsync(userId: string): Promise<IUser> {
