@@ -28,6 +28,8 @@ import {
     IValidateAuthenticationRequest
 } from "./requests";
 
+const blankUserId = "00000000-0000-0000-0000-000000000000";
+
 export class AuthArmorApiClient {
     private readonly apiBaseUrl: string;
     private readonly logInBaseUrl: string;
@@ -220,7 +222,7 @@ export class AuthArmorApiClient {
         username: string
     ): Promise<IAuthenticatorUserRegistration> {
         return await this.fetchAsync<IAuthenticatorUserRegistration>(
-            `/users/00000000-0000-0000-0000-000000000000/authenticator/register/start`,
+            `/users/${blankUserId}/authenticator/register/start`,
             "post",
             undefined,
             {
@@ -235,7 +237,7 @@ export class AuthArmorApiClient {
 
     public async getUserByUsernameAsync(username: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(
-            `/users/00000000-0000-0000-0000-000000000000`,
+            `/users/${blankUserId}`,
             "get",
             undefined,
             {
@@ -258,7 +260,7 @@ export class AuthArmorApiClient {
         { username: newUsername = null }: IUpdateUserRequest
     ): Promise<IUserProfile> {
         return await this.fetchAsync<IUserProfile>(
-            `/users/00000000-0000-0000-0000-000000000000`,
+            `/users/${blankUserId}`,
             "put",
             {
                 new_username: newUsername
@@ -285,7 +287,7 @@ export class AuthArmorApiClient {
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
         return await this.fetchAsync<IAuthHistory>(
-            `/users/00000000-0000-0000-0000-000000000000/auth_history?${pagingQuery}`,
+            `/users/${blankUserId}/auth_history?${pagingQuery}`,
             "get",
             undefined,
             {
