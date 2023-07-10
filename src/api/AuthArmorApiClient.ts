@@ -5,6 +5,7 @@ import { ISystemClock, NativeSystemClock } from "../infrastructure";
 import {
     IAuthInfo,
     IAuthTokenInfo,
+    IAuthenticationValidation,
     IAuthenticatorAuthenticationRequest,
     IFinishedWebAuthnAuthenticationRequest,
     IMagicLinkEmailAuthenticationRequest,
@@ -18,10 +19,9 @@ import {
     IStartAuthenticatorAuthenticationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest,
-    IUpdateUserRequest
+    IUpdateUserRequest,
+    IValidateAuthenticationRequest
 } from "./requests";
-import { IAuthenticationValidation } from "./models/IAuthenticationValidation";
-import { IValidateAuthenticationRequest } from "./requests/IValidateAuthenticationRequest";
 import { IUsersList } from "./models/IUsersList";
 
 export class AuthArmorApiClient {
@@ -187,7 +187,7 @@ export class AuthArmorApiClient {
     }
 
     public async updateUserAsync(userId: string, {
-        username
+        username = null
     }: IUpdateUserRequest): Promise<IUserProfile> {
         return await this.fetchAsync<IUserProfile>(`/users/${userId}`, "put", {
             new_username: username
