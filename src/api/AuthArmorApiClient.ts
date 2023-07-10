@@ -13,7 +13,8 @@ import {
     IMagicLinkEmailAuthenticationRequest,
     IUser,
     IUserProfile,
-    IWebAuthnAuthenticationRequest
+    IWebAuthnAuthenticationRequest,
+    IUsersList
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -26,7 +27,6 @@ import {
     IUpdateUserRequest,
     IValidateAuthenticationRequest
 } from "./requests";
-import { IUsersList } from "./models/IUsersList";
 
 export class AuthArmorApiClient {
     private readonly apiBaseUrl: string;
