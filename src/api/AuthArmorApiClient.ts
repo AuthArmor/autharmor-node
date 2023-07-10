@@ -216,6 +216,19 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async startAuthenticatorRegistrationForExistingUserByUsernameAsync(
+        username: string
+    ): Promise<IAuthenticatorUserRegistration> {
+        return await this.fetchAsync<IAuthenticatorUserRegistration>(
+            `/users/00000000-0000-0000-0000-000000000000/authenticator/register/start`,
+            "post",
+            undefined,
+            {
+                "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
     public async getUserByIdAsync(userId: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(`/users/${userId}`);
     }
