@@ -384,6 +384,32 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async startMagicLinkEmailRegistrationForExistingAsync(userId: string, {
+        emailAddress,
+        redirectUrl,
+        actionName = null,
+        shortMessage = null,
+        timeoutSeconds = null,
+        originLocationData = null,
+        ipAddress = null,
+        userAgent = null
+    }: IStartMagicLinkEmailRegistrationRequest): Promise<IMagicLinkRegistration> {
+        return await this.fetchAsync<IMagicLinkRegistration>(
+            `/users/${userId}/magiclink_email/register/start`,
+            "post",
+            {
+                email_address: emailAddress,
+                registration_redirect_url: redirectUrl,
+                action_name: actionName,
+                short_msg: shortMessage,
+                timeout_in_seconds: timeoutSeconds,
+                origin_location_data: originLocationData,
+                ip_address: ipAddress,
+                user_agent: userAgent
+            }
+        );
+    }
+
     public async getUserByIdAsync(userId: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(`/users/${userId}`);
     }
