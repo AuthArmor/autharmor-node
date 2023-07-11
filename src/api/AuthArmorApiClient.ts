@@ -17,7 +17,8 @@ import {
     IUsersList,
     IWebAuthnUserRegistration,
     IRegistrationResult,
-    IMagicLinkRegistration
+    IMagicLinkRegistration,
+    IMagicLinkEmailRegistrationResult
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -33,7 +34,8 @@ import {
     IStartWebAuthnUserRegistrationRequest,
     IUpdateMagicLinkEmailForUserRequest,
     IUpdateUserRequest,
-    IValidateAuthenticationRequest
+    IValidateAuthenticationRequest,
+    IValidateMagicLinkEmailRegistrationTokenRequest
 } from "./requests";
 
 const blankUserId = "00000000-0000-0000-0000-000000000000";
@@ -503,6 +505,22 @@ export class AuthArmorApiClient {
             },
             {
                 "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
+    public async validateMagicLinkEmailRegistrationTokenAsync({
+        validationToken,
+        ipAddress = null,
+        userAgent = null
+    }: IValidateMagicLinkEmailRegistrationTokenRequest): Promise<IMagicLinkEmailRegistrationResult> {
+        return await this.fetchAsync(
+            "/users/register/magiclink_email/validate",
+            "post",
+            {
+                registration_validation_token: validationToken,
+                ip_address: ipAddress,
+                user_agent: userAgent
             }
         );
     }

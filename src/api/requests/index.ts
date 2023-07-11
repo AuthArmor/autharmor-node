@@ -8,3 +8,4 @@ export * from "./IStartWebAuthnRegistrationRequest";
 export * from "./IUpdateMagicLinkEmailForUserRequest";
 export * from "./IUpdateUserRequest";
 export * from "./IValidateAuthenticationRequest";
+export * from "./IValidateMagicLinkEmailRegistrationTokenRequest";
