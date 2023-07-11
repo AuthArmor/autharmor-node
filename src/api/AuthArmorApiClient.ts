@@ -396,7 +396,7 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async startMagicLinkEmailRegistrationForExistingAsync(
+    public async startMagicLinkEmailRegistrationForExistingUserAsync(
         userId: string,
         {
             emailAddress,
