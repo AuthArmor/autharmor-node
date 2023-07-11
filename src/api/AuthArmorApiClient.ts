@@ -292,6 +292,26 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async finishWebAuthnRegistrationForExistingUserAsync(userId: string, {
+        registrationId,
+        authArmorSignature,
+        webAuthnClientId,
+        authenticatorResponseData,
+        fido2RegistrationData
+    }: IFinishWebAuthnRegistrationRequest): Promise<IRegistrationResult> {
+        return await this.fetchAsync<IRegistrationResult>(
+            `/users/${userId}/webauthn/register/finish`,
+            "post",
+            {
+                registration_id: registrationId,
+                aa_sig: authArmorSignature,
+                webauthn_client_id: webAuthnClientId,
+                authenticator_response_data: authenticatorResponseData,
+                fido2_registration_data: fido2RegistrationData
+            }
+        );
+    }
+
     public async startWebAuthnRegistrationForExistingUserByUsernameAsync(username: string, {
         webAuthnClientId,
         webAuthnAttachmentType = "Any",
