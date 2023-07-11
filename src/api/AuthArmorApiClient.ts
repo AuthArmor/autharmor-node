@@ -137,7 +137,8 @@ export class AuthArmorApiClient {
         originLocationData = null,
         ipAddress = null,
         userAgent = null,
-        nonce = null
+        nonce = null,
+        redirectUrl
     }: IStartMagicLinkEmailAuthenticationRequest): Promise<IMagicLinkEmailAuthenticationRequest> {
         return await this.fetchAsync<IMagicLinkEmailAuthenticationRequest>(
             "/auth/magiclink_email/start",
@@ -149,7 +150,8 @@ export class AuthArmorApiClient {
                 origin_location_data: originLocationData,
                 ip_address: ipAddress,
                 user_agent: userAgent,
-                nonce
+                nonce,
+                auth_redirect_url: redirectUrl
             }
         );
     }
