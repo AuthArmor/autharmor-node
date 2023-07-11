@@ -5,5 +5,6 @@ export * from "./IStartAuthenticationRequest";
 export * from "./IStartAuthenticatorUserRegistrationRequest";
 export * from "./IStartMagicLinkEmailRegistrationRequest";
 export * from "./IStartWebAuthnRegistrationRequest";
+export * from "./IUpdateMagicLinkEmailForUserRequest";
 export * from "./IUpdateUserRequest";
 export * from "./IValidateAuthenticationRequest";
