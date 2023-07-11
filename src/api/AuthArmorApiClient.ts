@@ -280,11 +280,14 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async startWebAuthnRegistrationForExistingUserAsync(userId: string, {
-        webAuthnClientId,
-        webAuthnAttachmentType = "Any",
-        timeoutSeconds = null
-    }: IStartWebAuthnRegistrationRequest) {
+    public async startWebAuthnRegistrationForExistingUserAsync(
+        userId: string,
+        {
+            webAuthnClientId,
+            webAuthnAttachmentType = "Any",
+            timeoutSeconds = null
+        }: IStartWebAuthnRegistrationRequest
+    ) {
         return await this.fetchAsync<IWebAuthnUserRegistration>(
             `/users/${userId}/webauthn/register/start`,
             "post",
@@ -296,13 +299,16 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async finishWebAuthnRegistrationForExistingUserAsync(userId: string, {
-        registrationId,
-        authArmorSignature,
-        webAuthnClientId,
-        authenticatorResponseData,
-        fido2RegistrationData
-    }: IFinishWebAuthnRegistrationRequest): Promise<IRegistrationResult> {
+    public async finishWebAuthnRegistrationForExistingUserAsync(
+        userId: string,
+        {
+            registrationId,
+            authArmorSignature,
+            webAuthnClientId,
+            authenticatorResponseData,
+            fido2RegistrationData
+        }: IFinishWebAuthnRegistrationRequest
+    ): Promise<IRegistrationResult> {
         return await this.fetchAsync<IRegistrationResult>(
             `/users/${userId}/webauthn/register/finish`,
             "post",
@@ -316,11 +322,14 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async startWebAuthnRegistrationForExistingUserByUsernameAsync(username: string, {
-        webAuthnClientId,
-        webAuthnAttachmentType = "Any",
-        timeoutSeconds = null
-    }: IStartWebAuthnRegistrationRequest): Promise<IWebAuthnUserRegistration> {
+    public async startWebAuthnRegistrationForExistingUserByUsernameAsync(
+        username: string,
+        {
+            webAuthnClientId,
+            webAuthnAttachmentType = "Any",
+            timeoutSeconds = null
+        }: IStartWebAuthnRegistrationRequest
+    ): Promise<IWebAuthnUserRegistration> {
         return await this.fetchAsync<IWebAuthnUserRegistration>(
             `/users/${blankUserId}/webauthn/register/start`,
             "post",
@@ -335,13 +344,16 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async finishWebAuthnRegistrationForExistingUserByUsernameAsync(username: string, {
-        registrationId,
-        authArmorSignature,
-        webAuthnClientId,
-        authenticatorResponseData,
-        fido2RegistrationData
-    }: IFinishWebAuthnRegistrationRequest): Promise<IRegistrationResult> {
+    public async finishWebAuthnRegistrationForExistingUserByUsernameAsync(
+        username: string,
+        {
+            registrationId,
+            authArmorSignature,
+            webAuthnClientId,
+            authenticatorResponseData,
+            fido2RegistrationData
+        }: IFinishWebAuthnRegistrationRequest
+    ): Promise<IRegistrationResult> {
         return await this.fetchAsync<IRegistrationResult>(
             `/users/${blankUserId}/webauthn/register/finish`,
             "post",
@@ -384,16 +396,19 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async startMagicLinkEmailRegistrationForExistingAsync(userId: string, {
-        emailAddress,
-        redirectUrl,
-        actionName = null,
-        shortMessage = null,
-        timeoutSeconds = null,
-        originLocationData = null,
-        ipAddress = null,
-        userAgent = null
-    }: IStartMagicLinkEmailRegistrationRequest): Promise<IMagicLinkRegistration> {
+    public async startMagicLinkEmailRegistrationForExistingAsync(
+        userId: string,
+        {
+            emailAddress,
+            redirectUrl,
+            actionName = null,
+            shortMessage = null,
+            timeoutSeconds = null,
+            originLocationData = null,
+            ipAddress = null,
+            userAgent = null
+        }: IStartMagicLinkEmailRegistrationRequest
+    ): Promise<IMagicLinkRegistration> {
         return await this.fetchAsync<IMagicLinkRegistration>(
             `/users/${userId}/magiclink_email/register/start`,
             "post",
