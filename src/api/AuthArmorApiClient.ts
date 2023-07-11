@@ -16,7 +16,8 @@ import {
     IWebAuthnAuthenticationRequest,
     IUsersList,
     IWebAuthnUserRegistration,
-    IRegistrationResult
+    IRegistrationResult,
+    IMagicLinkRegistration
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -26,6 +27,7 @@ import {
     IStartAuthenticatorAuthenticationRequest,
     IStartAuthenticatorUserRegistrationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
+    IStartMagicLinkEmailRegistrationRequest,
     IStartWebAuthnAuthenticationRequest,
     IStartWebAuthnRegistrationRequest,
     IStartWebAuthnUserRegistrationRequest,
@@ -352,6 +354,32 @@ export class AuthArmorApiClient {
             },
             {
                 "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
+    public async startMagicLinkEmailUserRegistrationAsync({
+        emailAddress,
+        redirectUrl,
+        actionName = null,
+        shortMessage = null,
+        timeoutSeconds = null,
+        originLocationData = null,
+        ipAddress = null,
+        userAgent = null
+    }: IStartMagicLinkEmailRegistrationRequest): Promise<IMagicLinkRegistration> {
+        return await this.fetchAsync<IMagicLinkRegistration>(
+            "/users/magiclink_email/register/start",
+            "post",
+            {
+                email_address: emailAddress,
+                registration_redirect_url: redirectUrl,
+                action_name: actionName,
+                short_msg: shortMessage,
+                timeout_in_seconds: timeoutSeconds,
+                origin_location_data: originLocationData,
+                ip_address: ipAddress,
+                user_agent: userAgent
             }
         );
     }
