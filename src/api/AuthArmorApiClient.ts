@@ -481,6 +481,32 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async updateMagicLinkEmailForExistingUserByUsernameAsync(
+        username: string,
+        {
+            emailAddress,
+            redirectUrl,
+            actionName = null,
+            shortMessage = null,
+            timeoutSeconds = null
+        }: IUpdateMagicLinkEmailForUserRequest
+    ): Promise<IMagicLinkRegistration> {
+        return await this.fetchAsync<IMagicLinkRegistration>(
+            `/users/${blankUserId}/magiclink_email/update/start`,
+            "post",
+            {
+                email_address: emailAddress,
+                registration_redirect_url: redirectUrl,
+                action_name: actionName,
+                short_msg: shortMessage,
+                timeout_in_seconds: timeoutSeconds
+            },
+            {
+                "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
     public async getUserByIdAsync(userId: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(`/users/${userId}`);
     }
