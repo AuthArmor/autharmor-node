@@ -31,6 +31,7 @@ import {
     IStartWebAuthnAuthenticationRequest,
     IStartWebAuthnRegistrationRequest,
     IStartWebAuthnUserRegistrationRequest,
+    IUpdateMagicLinkEmailForUserRequest,
     IUpdateUserRequest,
     IValidateAuthenticationRequest
 } from "./requests";
@@ -453,6 +454,29 @@ export class AuthArmorApiClient {
             },
             {
                 "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
+    public async updateMagicLinkEmailForExistingUserAsync(
+        userId: string,
+        {
+            emailAddress,
+            redirectUrl,
+            actionName = null,
+            shortMessage = null,
+            timeoutSeconds = null
+        }: IUpdateMagicLinkEmailForUserRequest
+    ): Promise<IMagicLinkRegistration> {
+        return await this.fetchAsync<IMagicLinkRegistration>(
+            `/users/${userId}/magiclink_email/update/start`,
+            "post",
+            {
+                email_address: emailAddress,
+                registration_redirect_url: redirectUrl,
+                action_name: actionName,
+                short_msg: shortMessage,
+                timeout_in_seconds: timeoutSeconds
             }
         );
     }
