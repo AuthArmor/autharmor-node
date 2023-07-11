@@ -27,6 +27,7 @@ import {
     IStartAuthenticatorUserRegistrationRequest,
     IStartMagicLinkEmailAuthenticationRequest,
     IStartWebAuthnAuthenticationRequest,
+    IStartWebAuthnRegistrationRequest,
     IStartWebAuthnUserRegistrationRequest,
     IUpdateUserRequest,
     IValidateAuthenticationRequest
@@ -271,6 +272,22 @@ export class AuthArmorApiClient {
                 webauthn_client_id: webAuthnClientId,
                 authenticator_response_data: authenticatorResponseData,
                 fido2_registration_data: fido2RegistrationData
+            }
+        );
+    }
+
+    public async startWebAuthnRegistrationForExistingUserAsync(userId: string, {
+        webAuthnClientId,
+        webAuthnAttachmentType = "Any",
+        timeoutSeconds = null
+    }: IStartWebAuthnRegistrationRequest) {
+        return await this.fetchAsync<IWebAuthnUserRegistration>(
+            `/users/${userId}/webauthn/register/start`,
+            "post",
+            {
+                webauthn_client_id: webAuthnClientId,
+                attachment_type: webAuthnAttachmentType,
+                timeout_in_seconds: timeoutSeconds
             }
         );
     }
