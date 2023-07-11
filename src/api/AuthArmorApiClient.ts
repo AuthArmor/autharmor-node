@@ -292,6 +292,25 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async startWebAuthnRegistrationForExistingUserByUsernameAsync(username: string, {
+        webAuthnClientId,
+        webAuthnAttachmentType = "Any",
+        timeoutSeconds = null
+    }: IStartWebAuthnRegistrationRequest) {
+        return await this.fetchAsync<IWebAuthnUserRegistration>(
+            `/users/${blankUserId}/webauthn/register/start`,
+            "post",
+            {
+                webauthn_client_id: webAuthnClientId,
+                attachment_type: webAuthnAttachmentType,
+                timeout_in_seconds: timeoutSeconds
+            },
+            {
+                "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
     public async getUserByIdAsync(userId: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(`/users/${userId}`);
     }
