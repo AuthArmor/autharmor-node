@@ -331,6 +331,29 @@ export class AuthArmorApiClient {
         );
     }
 
+    public async finishWebAuthnRegistrationForExistingUserByUsernameAsync(username: string, {
+        registrationId,
+        authArmorSignature,
+        webAuthnClientId,
+        authenticatorResponseData,
+        fido2RegistrationData
+    }: IFinishWebAuthnRegistrationRequest): Promise<IRegistrationResult> {
+        return await this.fetchAsync<IRegistrationResult>(
+            `/users/${blankUserId}/webauthn/register/finish`,
+            "post",
+            {
+                registration_id: registrationId,
+                aa_sig: authArmorSignature,
+                webauthn_client_id: webAuthnClientId,
+                authenticator_response_data: authenticatorResponseData,
+                fido2_registration_data: fido2RegistrationData
+            },
+            {
+                "X-AuthArmor-UsernameValue": username
+            }
+        );
+    }
+
     public async getUserByIdAsync(userId: string): Promise<IUser> {
         return await this.fetchAsync<IUser>(`/users/${userId}`);
     }
