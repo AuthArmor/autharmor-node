@@ -320,7 +320,7 @@ export class AuthArmorApiClient {
         webAuthnClientId,
         webAuthnAttachmentType = "Any",
         timeoutSeconds = null
-    }: IStartWebAuthnRegistrationRequest) {
+    }: IStartWebAuthnRegistrationRequest): Promise<IWebAuthnUserRegistration> {
         return await this.fetchAsync<IWebAuthnUserRegistration>(
             `/users/${blankUserId}/webauthn/register/start`,
             "post",
