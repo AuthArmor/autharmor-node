@@ -664,7 +664,7 @@ export class AuthArmorApiClient {
             client_secret: this.configuration.clientSecret
         });
 
-        const response = await fetch(`${this.logInBaseUrl}/connect/token` + searchParams, {
+        const response = await fetch(`${this.logInBaseUrl}/connect/token?${searchParams}`, {
             method: "POST"
         });
 
