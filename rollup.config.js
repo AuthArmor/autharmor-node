@@ -58,5 +58,5 @@ export default defineConfig({
             }
         }
     ],
-    external: ["node-fetch"]
+    external: ["undici"]
 });
