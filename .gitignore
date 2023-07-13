@@ -3,3 +3,4 @@ dist
 .cache
 build
 .vscode
+.DS_Store
