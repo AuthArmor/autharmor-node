@@ -1,3 +1,2 @@
-import AuthArmorSDK from "./AuthArmorSDK";
-
-export { AuthArmorSDK };
+export * from "./api";
+export * from "./infrastructure";
