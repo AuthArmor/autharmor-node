@@ -658,14 +658,19 @@ export class AuthArmorApiClient {
     }
 
     private async getAuthToken(): Promise<IAuthTokenInfo> {
-        const searchParams = new URLSearchParams({
+        const bodyParams = new URLSearchParams({
             grant_type: "client_credentials",
             client_id: this.configuration.clientId,
             client_secret: this.configuration.clientSecret
         });
 
-        const response = await fetch(`${this.logInBaseUrl}/connect/token?${searchParams}`, {
-            method: "POST"
+        const response = await fetch(`${this.logInBaseUrl}/connect/token`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: bodyParams.toString()
         });
 
         const authTokenInfo = (await response.json()) as IAuthTokenInfo;
