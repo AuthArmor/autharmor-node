@@ -1,4 +1,4 @@
-import fetch, { HeadersInit, RequestInit } from "node-fetch";
+import { fetch, HeadersInit, RequestInit } from "undici";
 import { environment } from "../environment";
 import { IAuthArmorClientConfiguration } from "./config";
 import { ISystemClock, NativeSystemClock } from "../infrastructure";
