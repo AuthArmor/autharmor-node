@@ -3,6 +3,14 @@ export interface IRegistrationResult {
     username: string;
 }
 
+export interface IAuthenticatorRegistrationResult extends IRegistrationResult {
+    device_id: string;
+}
+
+export interface IWebAuthnRegistrationResult extends IRegistrationResult {
+    device_id: string;
+}
+
 export interface IMagicLinkEmailRegistrationResult extends IRegistrationResult {
     magiclink_email_registration_type: MagicLinkEmailRegistrationType;
     email_address: string;
