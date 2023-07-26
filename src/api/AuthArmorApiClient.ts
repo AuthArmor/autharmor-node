@@ -18,7 +18,9 @@ import {
     IWebAuthnUserRegistration,
     IRegistrationResult,
     IMagicLinkRegistration,
-    IMagicLinkEmailRegistrationResult
+    IMagicLinkEmailRegistrationResult,
+    IWebAuthnRegistrationResult,
+    IAuthenticatorRegistrationResult
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -35,7 +37,9 @@ import {
     IUpdateMagicLinkEmailForUserRequest,
     IUpdateUserRequest,
     IValidateAuthenticationRequest,
-    IValidateMagicLinkEmailRegistrationTokenRequest
+    IValidateAuthenticatorRegistrationRequest,
+    IValidateMagicLinkEmailRegistrationRequest,
+    IValidateWebAuthnRegistrationRequest
 } from "./requests";
 
 const blankUserId = "00000000-0000-0000-0000-000000000000";
@@ -190,19 +194,17 @@ export class AuthArmorApiClient {
 
     public async listUsersAsync(
         pagingOptions: IPagingRequest<IUserProfile>,
-        filter?: string
+        usernameFilter?: string
     ): Promise<IUsersList> {
+        const filterParams = new URLSearchParams();
+
+        if (usernameFilter !== undefined) {
+            filterParams.append("username", usernameFilter);
+        }
+
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
-        return await this.fetchAsync<IUsersList>(
-            `/users?${pagingQuery}`,
-            "get",
-            undefined,
-            (filter && {
-                "X-AuthArmor-UserFilterString": filter
-            }) ||
-                undefined
-        );
+        return await this.fetchAsync<IUsersList>(`/users?${filterParams}&${pagingQuery}`, "get");
     }
 
     public async startAuthenticatorUserRegistrationAsync({
@@ -225,7 +227,7 @@ export class AuthArmorApiClient {
         userId: string
     ): Promise<IAuthenticatorUserRegistration> {
         return await this.fetchAsync<IAuthenticatorUserRegistration>(
-            `/users/${userId}/authenticator/register/start`,
+            `/users/${encodeURIComponent(userId)}/authenticator/register/start`,
             "post"
         );
     }
@@ -233,12 +235,23 @@ export class AuthArmorApiClient {
     public async startAuthenticatorRegistrationForExistingUserByUsernameAsync(
         username: string
     ): Promise<IAuthenticatorUserRegistration> {
+        const usernameQuery = this.getUsernameQuery(username);
+
         return await this.fetchAsync<IAuthenticatorUserRegistration>(
-            `/users/${blankUserId}/authenticator/register/start`,
+            `/users/${blankUserId}/authenticator/register/start?${usernameQuery}`,
+            "post"
+        );
+    }
+
+    public async validateAuthenticatorUserRegistrationAsync(
+        registrationId: string,
+        { validationToken }: IValidateAuthenticatorRegistrationRequest
+    ): Promise<IAuthenticatorRegistrationResult> {
+        return await this.fetchAsync<IAuthenticatorRegistrationResult>(
+            `/users/authenticator/registrations/${encodeURIComponent(registrationId)}/validate`,
             "post",
-            undefined,
             {
-                "X-AuthArmor-UsernameValue": username
+                registration_validation_token: validationToken
             }
         );
     }
@@ -263,18 +276,19 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async finishWebAuthnUserRegistrationAsync({
-        registrationId,
-        authArmorSignature,
-        webAuthnClientId,
-        authenticatorResponseData,
-        fido2RegistrationData
-    }: IFinishWebAuthnRegistrationRequest): Promise<IRegistrationResult> {
+    public async finishWebAuthnUserRegistrationAsync(
+        registrationId: string,
+        {
+            authArmorSignature,
+            webAuthnClientId,
+            authenticatorResponseData,
+            fido2RegistrationData
+        }: IFinishWebAuthnRegistrationRequest
+    ): Promise<IRegistrationResult> {
         return await this.fetchAsync<IRegistrationResult>(
-            "/users/webauthn/register/finish",
+            `/users/webauthn/registrations/${encodeURIComponent(registrationId)}/finish`,
             "post",
             {
-                registration_id: registrationId,
                 aa_sig: authArmorSignature,
                 webauthn_client_id: webAuthnClientId,
                 authenticator_response_data: authenticatorResponseData,
@@ -292,7 +306,7 @@ export class AuthArmorApiClient {
         }: IStartWebAuthnRegistrationRequest
     ) {
         return await this.fetchAsync<IWebAuthnUserRegistration>(
-            `/users/${userId}/webauthn/register/start`,
+            `/users/${encodeURIComponent(userId)}/webauthn/register/start`,
             "post",
             {
                 webauthn_client_id: webAuthnClientId,
@@ -304,8 +318,8 @@ export class AuthArmorApiClient {
 
     public async finishWebAuthnRegistrationForExistingUserAsync(
         userId: string,
+        registrationId: string,
         {
-            registrationId,
             authArmorSignature,
             webAuthnClientId,
             authenticatorResponseData,
@@ -313,10 +327,11 @@ export class AuthArmorApiClient {
         }: IFinishWebAuthnRegistrationRequest
     ): Promise<IRegistrationResult> {
         return await this.fetchAsync<IRegistrationResult>(
-            `/users/${userId}/webauthn/register/finish`,
+            `/users/${encodeURIComponent(userId)}/webauthn/registrations/${encodeURIComponent(
+                registrationId
+            )}/finish`,
             "post",
             {
-                registration_id: registrationId,
                 aa_sig: authArmorSignature,
                 webauthn_client_id: webAuthnClientId,
                 authenticator_response_data: authenticatorResponseData,
@@ -333,42 +348,56 @@ export class AuthArmorApiClient {
             timeoutSeconds = null
         }: IStartWebAuthnRegistrationRequest
     ): Promise<IWebAuthnUserRegistration> {
+        const usernameQuery = this.getUsernameQuery(username);
+
         return await this.fetchAsync<IWebAuthnUserRegistration>(
-            `/users/${blankUserId}/webauthn/register/start`,
+            `/users/${blankUserId}/webauthn/register/start?${usernameQuery}`,
             "post",
             {
                 webauthn_client_id: webAuthnClientId,
                 attachment_type: webAuthnAttachmentType,
                 timeout_in_seconds: timeoutSeconds
-            },
-            {
-                "X-AuthArmor-UsernameValue": username
             }
         );
     }
 
     public async finishWebAuthnRegistrationForExistingUserByUsernameAsync(
         username: string,
+        registrationId: string,
         {
-            registrationId,
             authArmorSignature,
             webAuthnClientId,
             authenticatorResponseData,
             fido2RegistrationData
         }: IFinishWebAuthnRegistrationRequest
     ): Promise<IRegistrationResult> {
+        const usernameQuery = this.getUsernameQuery(username);
+
         return await this.fetchAsync<IRegistrationResult>(
-            `/users/${blankUserId}/webauthn/register/finish`,
+            `/users/${blankUserId}/webauthn/registrations/${encodeURIComponent(
+                registrationId
+            )}/finish?${usernameQuery}`,
             "post",
             {
-                registration_id: registrationId,
                 aa_sig: authArmorSignature,
                 webauthn_client_id: webAuthnClientId,
                 authenticator_response_data: authenticatorResponseData,
                 fido2_registration_data: fido2RegistrationData
-            },
+            }
+        );
+    }
+
+    public async validateWebAuthnRegistrationAsync(
+        registrationId: string,
+        { validationToken }: IValidateWebAuthnRegistrationRequest
+    ): Promise<IWebAuthnRegistrationResult> {
+        return await this.fetchAsync<IWebAuthnRegistrationResult>(
+            `/users/${blankUserId}/webauthn/registrations/${encodeURIComponent(
+                registrationId
+            )}/finish`,
+            "post",
             {
-                "X-AuthArmor-UsernameValue": username
+                registration_validation_token: validationToken
             }
         );
     }
@@ -413,7 +442,7 @@ export class AuthArmorApiClient {
         }: IStartMagicLinkEmailRegistrationRequest
     ): Promise<IMagicLinkRegistration> {
         return await this.fetchAsync<IMagicLinkRegistration>(
-            `/users/${userId}/magiclink_email/register/start`,
+            `/users/${encodeURIComponent(userId)}/magiclink_email/register/start`,
             "post",
             {
                 email_address: emailAddress,
@@ -441,8 +470,10 @@ export class AuthArmorApiClient {
             userAgent = null
         }: IStartMagicLinkEmailRegistrationRequest
     ): Promise<IMagicLinkRegistration> {
+        const usernameQuery = this.getUsernameQuery(username);
+
         return await this.fetchAsync<IMagicLinkRegistration>(
-            `/users/${blankUserId}/magiclink_email/register/start`,
+            `/users/${blankUserId}/magiclink_email/register/start?${usernameQuery}`,
             "post",
             {
                 email_address: emailAddress,
@@ -453,9 +484,6 @@ export class AuthArmorApiClient {
                 origin_location_data: originLocationData,
                 ip_address: ipAddress,
                 user_agent: userAgent
-            },
-            {
-                "X-AuthArmor-UsernameValue": username
             }
         );
     }
@@ -471,7 +499,7 @@ export class AuthArmorApiClient {
         }: IUpdateMagicLinkEmailForUserRequest
     ): Promise<IMagicLinkRegistration> {
         return await this.fetchAsync<IMagicLinkRegistration>(
-            `/users/${userId}/magiclink_email/update/start`,
+            `/users/${encodeURIComponent(userId)}/magiclink_email/update/start`,
             "post",
             {
                 email_address: emailAddress,
@@ -493,8 +521,10 @@ export class AuthArmorApiClient {
             timeoutSeconds = null
         }: IUpdateMagicLinkEmailForUserRequest
     ): Promise<IMagicLinkRegistration> {
+        const usernameQuery = this.getUsernameQuery(username);
+
         return await this.fetchAsync<IMagicLinkRegistration>(
-            `/users/${blankUserId}/magiclink_email/update/start`,
+            `/users/${blankUserId}/magiclink_email/update/start?${usernameQuery}`,
             "post",
             {
                 email_address: emailAddress,
@@ -502,44 +532,37 @@ export class AuthArmorApiClient {
                 action_name: actionName,
                 short_msg: shortMessage,
                 timeout_in_seconds: timeoutSeconds
-            },
-            {
-                "X-AuthArmor-UsernameValue": username
             }
         );
     }
 
-    public async validateMagicLinkEmailRegistrationTokenAsync({
+    public async validateMagicLinkEmailRegistrationAsync({
         validationToken,
         ipAddress = null,
         userAgent = null
-    }: IValidateMagicLinkEmailRegistrationTokenRequest): Promise<IMagicLinkEmailRegistrationResult> {
-        return await this.fetchAsync(
-            "/users/register/magiclink_email/validate",
-            "post",
-            {
-                registration_validation_token: validationToken,
-                ip_address: ipAddress,
-                user_agent: userAgent
-            }
-        );
+    }: IValidateMagicLinkEmailRegistrationRequest): Promise<IMagicLinkEmailRegistrationResult> {
+        return await this.fetchAsync("/users/register/magiclink_email/validate", "post", {
+            registration_validation_token: validationToken,
+            ip_address: ipAddress,
+            user_agent: userAgent
+        });
     }
 
     public async getUserByIdAsync(userId: string): Promise<IUser> {
-        return await this.fetchAsync<IUser>(`/users/${userId}`);
+        return await this.fetchAsync<IUser>(`/users/${encodeURIComponent(userId)}`);
     }
 
     public async getUserByUsernameAsync(username: string): Promise<IUser> {
-        return await this.fetchAsync<IUser>(`/users/${blankUserId}`, "get", undefined, {
-            "X-AuthArmor-UsernameValue": username
-        });
+        const usernameQuery = this.getUsernameQuery(username);
+
+        return await this.fetchAsync<IUser>(`/users/${blankUserId}?${usernameQuery}`, "get");
     }
 
     public async updateUserAsync(
         userId: string,
         { username = null }: IUpdateUserRequest
     ): Promise<IUserProfile> {
-        return await this.fetchAsync<IUserProfile>(`/users/${userId}`, "put", {
+        return await this.fetchAsync<IUserProfile>(`/users/${encodeURIComponent(userId)}`, "put", {
             new_username: username
         });
     }
@@ -548,14 +571,13 @@ export class AuthArmorApiClient {
         username: string,
         { username: newUsername = null }: IUpdateUserRequest
     ): Promise<IUserProfile> {
+        const usernameQuery = this.getUsernameQuery(username);
+
         return await this.fetchAsync<IUserProfile>(
-            `/users/${blankUserId}`,
+            `/users/${blankUserId}?${usernameQuery}`,
             "put",
             {
                 new_username: newUsername
-            },
-            {
-                "X-AuthArmor-UsernameValue": username
             }
         );
     }
@@ -566,23 +588,30 @@ export class AuthArmorApiClient {
     ): Promise<IAuthHistory> {
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
-        return await this.fetchAsync<IAuthHistory>(`/users/${userId}/auth_history?${pagingQuery}`);
+        return await this.fetchAsync<IAuthHistory>(
+            `/users/${encodeURIComponent(userId)}/auth_history?${pagingQuery}`
+        );
     }
 
     public async getUserAuthHistoryByUsernameAsync(
         username: string,
         pagingOptions: IPagingRequest<IAuthInfo>
     ): Promise<IAuthHistory> {
+        const usernameQuery = this.getUsernameQuery(username);
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
         return await this.fetchAsync<IAuthHistory>(
-            `/users/${blankUserId}/auth_history?${pagingQuery}`,
-            "get",
-            undefined,
-            {
-                "X-AuthArmor-UsernameValue": username
-            }
+            `/users/${blankUserId}/auth_history?${usernameQuery}&${pagingQuery}`,
+            "get"
         );
+    }
+
+    private getUsernameQuery(username: string): string {
+        const searchParams = new URLSearchParams();
+
+        searchParams.append("username", username);
+
+        return searchParams.toString();
     }
 
     private getPagingQuery<T>(pagingRequest: IPagingRequest<T>): string {
