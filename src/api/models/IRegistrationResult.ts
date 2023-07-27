@@ -18,3 +18,9 @@ export interface IMagicLinkEmailRegistrationResult extends IRegistrationResult {
 }
 
 export type MagicLinkEmailRegistrationType = "new_user" | "new_enrollment" | "change_email";
+
+export type RegistrationResultsByAuthenticationMethod = {
+    authenticator: IAuthenticatorRegistrationResult,
+    webauthn: IWebAuthnRegistrationResult,
+    magiclink_email: IMagicLinkEmailRegistrationResult
+};
