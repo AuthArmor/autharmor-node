@@ -176,7 +176,7 @@ export class AuthArmorApiClient {
         }: IValidateAuthenticationRequest
     ): Promise<IAuthenticationValidation> {
         return await this.fetchAsync<IAuthenticationValidation>(
-            `/auth/${authMethod}/validate`,
+            `/auth/${encodeURIComponent(authMethod)}/validate`,
             "post",
             {
                 auth_request_id: requestId,
@@ -189,7 +189,7 @@ export class AuthArmorApiClient {
     }
 
     public async getAuthInfoAsync(authRequestId: string): Promise<IAuthInfo> {
-        return await this.fetchAsync<IAuthInfo>(`/auth/${authRequestId}`);
+        return await this.fetchAsync<IAuthInfo>(`/auth/${encodeURIComponent(authRequestId)}`);
     }
 
     public async listUsersAsync(
@@ -240,19 +240,6 @@ export class AuthArmorApiClient {
         return await this.fetchAsync<IAuthenticatorUserRegistration>(
             `/users/${blankUserId}/authenticator/register/start?${usernameQuery}`,
             "post"
-        );
-    }
-
-    public async validateAuthenticatorUserRegistrationAsync(
-        registrationId: string,
-        { validationToken }: IValidateAuthenticatorRegistrationRequest
-    ): Promise<IAuthenticatorRegistrationResult> {
-        return await this.fetchAsync<IAuthenticatorRegistrationResult>(
-            `/users/authenticator/registrations/${encodeURIComponent(registrationId)}/validate`,
-            "post",
-            {
-                registration_validation_token: validationToken
-            }
         );
     }
 
@@ -383,21 +370,6 @@ export class AuthArmorApiClient {
                 webauthn_client_id: webAuthnClientId,
                 authenticator_response_data: authenticatorResponseData,
                 fido2_registration_data: fido2RegistrationData
-            }
-        );
-    }
-
-    public async validateWebAuthnRegistrationAsync(
-        registrationId: string,
-        { validationToken }: IValidateWebAuthnRegistrationRequest
-    ): Promise<IWebAuthnRegistrationResult> {
-        return await this.fetchAsync<IWebAuthnRegistrationResult>(
-            `/users/${blankUserId}/webauthn/registrations/${encodeURIComponent(
-                registrationId
-            )}/finish`,
-            "post",
-            {
-                registration_validation_token: validationToken
             }
         );
     }
@@ -546,6 +518,22 @@ export class AuthArmorApiClient {
             ip_address: ipAddress,
             user_agent: userAgent
         });
+    }
+
+    public async validateRegistrationAsync(
+        authMethod: "authenticator" | "webauthn",
+        registrationId: string,
+        { validationToken }: IValidateWebAuthnRegistrationRequest
+    ): Promise<IWebAuthnRegistrationResult> {
+        return await this.fetchAsync<IWebAuthnRegistrationResult>(
+            `/users/${blankUserId}/${encodeURIComponent(
+                authMethod
+            )}/registrations/${encodeURIComponent(registrationId)}/validate`,
+            "post",
+            {
+                registration_validation_token: validationToken
+            }
+        );
     }
 
     public async getUserByIdAsync(userId: string): Promise<IUser> {
