@@ -19,8 +19,6 @@ import {
     IRegistrationResult,
     IMagicLinkRegistration,
     IMagicLinkEmailRegistrationResult,
-    IWebAuthnRegistrationResult,
-    IAuthenticatorRegistrationResult,
     RegistrationResultsByAuthenticationMethod
 } from "./models";
 import { ApiError } from "./errors";
@@ -38,9 +36,8 @@ import {
     IUpdateMagicLinkEmailForUserRequest,
     IUpdateUserRequest,
     IValidateAuthenticationRequest,
-    IValidateAuthenticatorRegistrationRequest,
     IValidateMagicLinkEmailRegistrationRequest,
-    IValidateWebAuthnRegistrationRequest
+    IValidateRegistrationRequest
 } from "./requests";
 
 const blankUserId = "00000000-0000-0000-0000-000000000000";
@@ -524,9 +521,9 @@ export class AuthArmorApiClient {
     public async validateRegistrationAsync<TAuthMethod extends "authenticator" | "webauthn">(
         authMethod: TAuthMethod,
         registrationId: string,
-        { validationToken }: IValidateWebAuthnRegistrationRequest
+        { validationToken }: IValidateRegistrationRequest
     ): Promise<RegistrationResultsByAuthenticationMethod[TAuthMethod]> {
-        return await this.fetchAsync<IWebAuthnRegistrationResult>(
+        return await this.fetchAsync<RegistrationResultsByAuthenticationMethod[TAuthMethod]>(
             `/users/${blankUserId}/${encodeURIComponent(
                 authMethod
             )}/registrations/${encodeURIComponent(registrationId)}/validate`,
