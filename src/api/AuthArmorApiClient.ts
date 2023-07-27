@@ -20,7 +20,8 @@ import {
     IMagicLinkRegistration,
     IMagicLinkEmailRegistrationResult,
     IWebAuthnRegistrationResult,
-    IAuthenticatorRegistrationResult
+    IAuthenticatorRegistrationResult,
+    RegistrationResultsByAuthenticationMethod
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -520,11 +521,11 @@ export class AuthArmorApiClient {
         });
     }
 
-    public async validateRegistrationAsync(
-        authMethod: "authenticator" | "webauthn",
+    public async validateRegistrationAsync<TAuthMethod extends "authenticator" | "webauthn">(
+        authMethod: TAuthMethod,
         registrationId: string,
         { validationToken }: IValidateWebAuthnRegistrationRequest
-    ): Promise<IWebAuthnRegistrationResult> {
+    ): Promise<RegistrationResultsByAuthenticationMethod[TAuthMethod]> {
         return await this.fetchAsync<IWebAuthnRegistrationResult>(
             `/users/${blankUserId}/${encodeURIComponent(
                 authMethod
