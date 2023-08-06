@@ -525,9 +525,9 @@ export class AuthArmorApiClient {
         { validationToken }: IValidateRegistrationRequest
     ): Promise<RegistrationResultsByAuthenticationMethod[TAuthMethod]> {
         return await this.fetchAsync<RegistrationResultsByAuthenticationMethod[TAuthMethod]>(
-            `/users/${blankUserId}/${encodeURIComponent(
-                authMethod
-            )}/registrations/${encodeURIComponent(registrationId)}/validate`,
+            `/users/${encodeURIComponent(authMethod)}/registrations/${encodeURIComponent(
+                registrationId
+            )}/validate`,
             "post",
             {
                 registration_validation_token: validationToken
