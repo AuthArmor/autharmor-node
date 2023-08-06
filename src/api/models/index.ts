@@ -1,4 +1,5 @@
 export * from "./IAuthDetails";
+export * from "./IApiError";
 export * from "./IAuthenticationRequest";
 export * from "./IAuthenticationValidation";
 export * from "./IAuthenticatorUserRegistration";
