@@ -39,6 +39,7 @@ import {
     IValidateMagicLinkEmailRegistrationRequest,
     IValidateRegistrationRequest
 } from "./requests";
+import { TokenAcquisitionError } from "./errors/TokenAcquisitionError";
 
 const blankUserId = "00000000-0000-0000-0000-000000000000";
 
@@ -687,6 +688,12 @@ export class AuthArmorApiClient {
             },
             body: bodyParams.toString()
         });
+
+        if (!response.ok) {
+            const errorResponse = (await response.json()) as { message: string };
+
+            throw new TokenAcquisitionError(errorResponse.message);
+        }
 
         const authTokenInfo = (await response.json()) as IAuthTokenInfo;
 
