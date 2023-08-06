@@ -19,7 +19,8 @@ import {
     IRegistrationResult,
     IMagicLinkRegistration,
     IMagicLinkEmailRegistrationResult,
-    RegistrationResultsByAuthenticationMethod
+    RegistrationResultsByAuthenticationMethod,
+    IApiError
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -653,7 +654,9 @@ export class AuthArmorApiClient {
         const response = await fetch(url, options);
 
         if (!response.ok) {
-            throw new ApiError(response.status, response.statusText);
+            const errorBody = (await response.json()) as IApiError;
+
+            throw new ApiError(errorBody);
         }
 
         const responseBody = (await response.json()) as TResponse;
@@ -690,9 +693,9 @@ export class AuthArmorApiClient {
         });
 
         if (!response.ok) {
-            const errorResponse = (await response.json()) as { error: string };
+            const errorBody = (await response.json()) as { error: string };
 
-            throw new TokenAcquisitionError(errorResponse.error);
+            throw new TokenAcquisitionError(errorBody.error);
         }
 
         const authTokenInfo = (await response.json()) as IAuthTokenInfo;
