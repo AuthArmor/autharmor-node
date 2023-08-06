@@ -6,10 +6,10 @@ export class ApiError extends Error {
     public readonly trackingId: string;
 
     public constructor(public readonly rawError: IApiError) {
-        super(`[${rawError.errorCode}] ${rawError.errorMessage}`);
+        super(`[${rawError.error_code}] ${rawError.error_message}`);
 
-        this.statusCode = rawError.errorCode;
-        this.message = rawError.errorMessage;
-        this.trackingId = rawError.trackingGuid;
+        this.statusCode = rawError.error_code;
+        this.message = rawError.error_message;
+        this.trackingId = rawError.tracking_id;
     }
 }
