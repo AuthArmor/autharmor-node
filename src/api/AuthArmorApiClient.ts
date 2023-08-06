@@ -690,9 +690,9 @@ export class AuthArmorApiClient {
         });
 
         if (!response.ok) {
-            const errorResponse = (await response.json()) as { message: string };
+            const errorResponse = (await response.json()) as { error: string };
 
-            throw new TokenAcquisitionError(errorResponse.message);
+            throw new TokenAcquisitionError(errorResponse.error);
         }
 
         const authTokenInfo = (await response.json()) as IAuthTokenInfo;
