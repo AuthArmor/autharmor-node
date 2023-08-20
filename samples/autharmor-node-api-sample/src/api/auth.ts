@@ -121,7 +121,7 @@ router.post<RegisterWithMagicLinkParams, RegisterWithMagicLinkResponse>(
         }
 
         const validationResult =
-            await authArmorApiClient.validateMagicLinkEmailRegistrationTokenAsync({
+            await authArmorApiClient.validateMagicLinkEmailRegistrationAsync({
                 validationToken: request.validationToken
             });
 
