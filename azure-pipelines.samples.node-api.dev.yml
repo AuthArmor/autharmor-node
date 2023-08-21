@@ -33,6 +33,10 @@ stages:
       - script: pnpm run build
         displayName: 'Build bundle'
         workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
+      
+      - script: pnpm prune --production
+        displayName: 'Remove unnecessary dependencies'
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
 
       - task: CopyFiles@2
         displayName: 'Stage artifact files'
