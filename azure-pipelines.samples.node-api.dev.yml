@@ -26,7 +26,7 @@ stages:
       - script: npm install --global pnpm@latest-8
         displayName: 'Install pnpm'
 
-      - script: pnpm install
+      - script: pnpm install --shamefully-hoist
         displayName: 'Install dependencies'
         workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
       
