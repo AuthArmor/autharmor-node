@@ -37,7 +37,7 @@ stages:
       - task: CopyFiles@2
         displayName: 'Stage artifact files'
         inputs:
-          sourceFolder: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/dist/autharmor-angular-sample/
+          sourceFolder: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/dist/autharmor-node-api-sample/
           contents: |
             dist/**
             package.json
