@@ -1,0 +1,78 @@
+# Node.js
+# Build a general Node.js project with npm.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: build
+    displayName: 'Build package'
+    jobs:
+    - job: build_package
+      displayName: 'Build package'
+      steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.x'
+        displayName: 'Install Node.js'
+
+      - script: npm install --global pnpm@latest-8
+        displayName: 'Install pnpm'
+
+      - script: pnpm install
+        displayName: 'Install dependencies'
+
+      - task: DownloadSecureFile@1
+        name: envFile
+        displayName: 'Download development environment file'
+        inputs:
+          secureFile: 'autharmor-node.environment.development.ts'
+
+      - script: |
+          rm $(System.DefaultWorkingDirectory)/src/environment/environment.ts
+          mv $(envFile.secureFilePath) $(System.DefaultWorkingDirectory)/src/environment/environment.ts
+        displayName: 'Install development environment file'
+
+      - script: pnpm run build
+        displayName: 'Build package'
+
+      - script: mv -f .dev.npmrc .npmrc
+        displayName: 'Install development .npmrc file'
+
+      - task: CopyFiles@2
+        displayName: 'Stage artifact files'
+        inputs:
+          contents: |
+            dist/**
+            package.json
+            .npmrc
+            README.md
+          targetFolder: $(Build.ArtifactStagingDirectory)
+
+      - publish: $(Build.ArtifactStagingDirectory)
+        artifact: autharmor-node
+        displayName: 'Publish package'
+
+  - stage: deploy
+    displayName: 'Deploy to Azure Artifacts'
+    dependsOn: build
+    jobs:
+    - deployment: deploy_to_artifacts
+      displayName: 'Deploy to Azure Artifacts'
+      environment: sdk-development
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              artifact: autharmor-node
+            - task: npmAuthenticate@0
+              inputs:
+                workingFile: $(Pipeline.Workspace)/autharmor-node/.npmrc
+            - script: npm publish
+              workingDirectory: $(Pipeline.Workspace)/autharmor-node/
