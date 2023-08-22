@@ -6,8 +6,8 @@ settings:
 
 dependencies:
   '@autharmor/node':
-    specifier: 4.0.0-alpha.7
-    version: 4.0.0-alpha.7
+    specifier: 4.0.0-alpha.8
+    version: 4.0.0-alpha.8
   cors:
     specifier: ^2.8.5
     version: 2.8.5
@@ -58,8 +58,8 @@ devDependencies:
 
 packages:
 
-  /@autharmor/node@4.0.0-alpha.7:
-    resolution: {integrity: sha512-2dLnfGNitmFrcApK+JmNHpHTIpnrxNcVbHoGzgSdjVQEoYsB8smRoETfPo06zE2mtB+kUDvOT6ATolyVsKdkvA==}
+  /@autharmor/node@4.0.0-alpha.8:
+    resolution: {integrity: sha512-ZNJOTlvC7bNplWqdmeAh2bMbtav75eHgHnDT2SXktrteWu4ic19ZscvGZUcBfnmbxrjqeNoP7GLUAdzT3LcGqg==}
     dependencies:
       undici: 5.23.0
     dev: false
