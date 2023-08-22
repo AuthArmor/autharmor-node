@@ -36,7 +36,7 @@ stages:
 
       - script: pnpm update "@autharmor/*"
         displayName: 'Update Auth Armor dependencies'
-        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-angular-sample/
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
 
       - script: pnpm install --shamefully-hoist
         displayName: 'Install dependencies'
