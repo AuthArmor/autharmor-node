@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
-  '@autharmor/node':
+  '@autharmor/autharmor-node':
     specifier: 4.0.0-alpha.8
     version: 4.0.0-alpha.8
   cors:
@@ -58,8 +58,8 @@ devDependencies:
 
 packages:
 
-  /@autharmor/node@4.0.0-alpha.8:
-    resolution: {integrity: sha512-ZNJOTlvC7bNplWqdmeAh2bMbtav75eHgHnDT2SXktrteWu4ic19ZscvGZUcBfnmbxrjqeNoP7GLUAdzT3LcGqg==}
+  /@autharmor/autharmor-node@4.0.0-alpha.8:
+    resolution: {integrity: sha512-jRwSSQ5uMCJTmJV3DFIa+fWjc4SsH8YgHdrTDzI1ytcJ9oxQ5lrn8uWYbmJtZoZTU5ghs+HoC+SjANOZ3+t0oQ==}
     dependencies:
       undici: 5.23.0
     dev: false
