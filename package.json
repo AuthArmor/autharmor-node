@@ -1,5 +1,5 @@
 {
-    "name": "@autharmor/node",
+    "name": "@autharmor/autharmor-node",
     "version": "4.0.0-alpha.8",
     "type": "module",
     "source": "src/index.ts",
