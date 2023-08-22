@@ -34,7 +34,7 @@ stages:
         inputs:
           workingFile: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/.npmrc
 
-      - script: pnpm update --filter "@autharmor/*"
+      - script: pnpm update "@autharmor/*"
         displayName: 'Update Auth Armor dependencies'
         workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-angular-sample/
 
