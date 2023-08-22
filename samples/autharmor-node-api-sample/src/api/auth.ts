@@ -1,6 +1,7 @@
 import express from "express";
 import { createToken } from "../features/auth";
 import { authArmorApiClient } from "../features/authArmor";
+import { ApiError } from "@autharmor/autharmor-node";
 
 const router = express.Router();
 
@@ -65,34 +66,54 @@ router.post<LoginParams, LoginResponse>("/login", async (req, res) => {
 type RegisterParams = {};
 
 type RegisterRequest = {
-    userId: string;
-    username: string;
+    registrationId: string;
+    authenticationMethod: "authenticator" | "webAuthn";
+    validationToken: string;
 };
 
 type RegisterResponse = {
     token: string;
 };
 
-router.post<RegisterParams, RegisterResponse>("/register", (req, res) => {
+router.post<RegisterParams, RegisterResponse>("/register", async (req, res) => {
     const request = req.body as RegisterRequest;
 
-    if (typeof request.userId !== "string" || typeof request.username !== "string") {
+    if (
+        typeof request.registrationId !== "string" ||
+        typeof request.authenticationMethod !== "string" ||
+        typeof request.validationToken !== "string"
+    ) {
         res.status(400);
         return;
     }
 
-    // autharmor: validate token (once implemented in newer API version)
-    const validationSucceeded = true;
+    const authenticationMethodMapping = {
+        authenticator: "authenticator",
+        webAuthn: "webauthn"
+    } as const;
 
-    if (!validationSucceeded) {
-        res.status(403);
-        return;
+    let registrationResult;
+
+    try {
+        registrationResult = await authArmorApiClient.validateRegistrationAsync(
+            authenticationMethodMapping[request.authenticationMethod],
+            request.registrationId,
+            {
+                validationToken: request.validationToken
+            }
+        );
+    } catch (error: unknown) {
+        if (error instanceof ApiError && (error.statusCode === 401 || error.statusCode === 403)) {
+            res.status(error.statusCode);
+            return;
+        } else {
+            throw error;
+        }
     }
 
-    // autharmor: fetch user data
     const authTokenData = {
-        userId: request.userId,
-        username: request.username
+        userId: registrationResult.user_id,
+        username: registrationResult.username
     };
 
     const token = createToken(authTokenData);
@@ -120,10 +141,9 @@ router.post<RegisterWithMagicLinkParams, RegisterWithMagicLinkResponse>(
             return;
         }
 
-        const validationResult =
-            await authArmorApiClient.validateMagicLinkEmailRegistrationAsync({
-                validationToken: request.validationToken
-            });
+        const validationResult = await authArmorApiClient.validateMagicLinkEmailRegistrationAsync({
+            validationToken: request.validationToken
+        });
 
         const authTokenData = {
             userId: validationResult.user_id,
