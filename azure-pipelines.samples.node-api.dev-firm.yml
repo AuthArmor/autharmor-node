@@ -1,0 +1,86 @@
+# Node.js with Angular
+# Build a Node.js project that uses Angular.
+# Add steps that analyze code, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
+
+trigger:
+- main
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: build
+    displayName: 'Build package'
+    jobs:
+    - job: build_package
+      displayName: 'Build package'
+      steps:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: '18.x'
+        displayName: 'Install Node.js'
+
+      - script: npm install --global pnpm@latest-8
+        displayName: 'Install pnpm'
+
+      - script: mv -f .dev.npmrc .npmrc
+        displayName: 'Install development .npmrc file'
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
+
+      - task: npmAuthenticate@0
+        inputs:
+          workingFile: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/.npmrc
+
+      - script: pnpm update "@autharmor/*"
+        displayName: 'Update Auth Armor dependencies'
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-angular-sample/
+
+      - script: pnpm install --shamefully-hoist
+        displayName: 'Install dependencies'
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
+      
+      - script: pnpm run build
+        displayName: 'Build bundle'
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
+      
+      - script: pnpm prune --production
+        displayName: 'Remove unnecessary dependencies'
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
+
+      - task: CopyFiles@2
+        displayName: 'Stage artifact files'
+        inputs:
+          sourceFolder: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
+          contents: |
+            dist/**
+            package.json
+            node_modules/**
+          targetFolder: $(Build.ArtifactStagingDirectory)
+
+      - publish: $(Build.ArtifactStagingDirectory)
+        artifact: autharmor-node-api-sample-bundle
+        displayName: 'Publish bundle'
+
+  - stage: deploy_appserv
+    displayName: 'Deploy to Azure App Service'
+    dependsOn: build
+    jobs:
+    - deployment: deploy_to_appserv
+      displayName: 'Deploy to Azure App Service'
+      environment: sdk-development
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+            - download: current
+              artifact: autharmor-node-api-sample-bundle
+            - task: AzureWebApp@1
+              inputs:
+                azureSubscription: 'Auth Armor Azure Dev Subscription'
+                appType: 'webAppLinux'
+                appName: 'devtst-wa-linux-samples-node-js-aarmor'
+                resourceGroupName: 'RG-AARMOR-WEBAPP-DEVTST'
+                package: $(Pipeline.Workspace)/autharmor-node-api-sample-bundle/
