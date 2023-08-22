@@ -1,4 +1,4 @@
-import { AuthArmorApiClient } from "@autharmor/node";
+import { AuthArmorApiClient } from "@autharmor/autharmor-node";
 
 const clientId = process.env.AUTHARMOR_CLIENT_ID!;
 const clientSecret = process.env.AUTHARMOR_CLIENT_SECRET!;
