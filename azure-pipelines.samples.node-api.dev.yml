@@ -34,7 +34,11 @@ stages:
         inputs:
           workingFile: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/.npmrc
 
-      - script: pnpm install --shamefully-hoist --no-verify-store-integrity
+      - script: pnpm update --filter "@autharmor/*"
+        displayName: 'Update Auth Armor dependencies'
+        workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-angular-sample/
+
+      - script: pnpm install --shamefully-hoist
         displayName: 'Install dependencies'
         workingDirectory: $(Build.Repository.LocalPath)/samples/autharmor-node-api-sample/
       
