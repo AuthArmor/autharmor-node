@@ -47,6 +47,7 @@ stages:
             fs.writeFileSync('package.json', JSON.stringify(npkg, undefined, 4));
           " | node
         displayName: 'Append development marker to package version'
+
       - script: pnpm run build
         displayName: 'Build package'
 
