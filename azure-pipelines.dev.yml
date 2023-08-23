@@ -70,6 +70,8 @@ stages:
   - stage: deploy
     displayName: 'Deploy to Azure Artifacts'
     dependsOn: build
+    variables:
+      isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
     jobs:
     - deployment: deploy_to_artifacts
       displayName: 'Deploy to Azure Artifacts'
@@ -83,5 +85,9 @@ stages:
             - task: npmAuthenticate@0
               inputs:
                 workingFile: $(Pipeline.Workspace)/autharmor-node/.npmrc
+            - script: npm publish --tag latest
+              workingDirectory: $(Pipeline.Workspace)/autharmor-node/
+              condition: and(succeeded(), eq(variables.isMain, true))
             - script: npm publish
               workingDirectory: $(Pipeline.Workspace)/autharmor-node/
+              condition: and(succeeded(), eq(variables.isMain, false))
