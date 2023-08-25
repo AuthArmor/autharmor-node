@@ -513,7 +513,7 @@ export class AuthArmorApiClient {
         ipAddress = null,
         userAgent = null
     }: IValidateMagicLinkEmailRegistrationRequest): Promise<IMagicLinkEmailRegistrationResult> {
-        return await this.fetchAsync("/users/register/magiclink_email/validate", "post", {
+        return await this.fetchAsync("/users/registrations/magiclink_email/validate", "post", {
             registration_validation_token: validationToken,
             ip_address: ipAddress,
             user_agent: userAgent
