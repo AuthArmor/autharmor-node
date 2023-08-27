@@ -1,7 +1,7 @@
 import express from "express";
 import { createToken } from "../features/auth";
 import { authArmorApiClient } from "../features/authArmor";
-import { ApiError } from "@autharmor/autharmor-node";
+import { ApiError, IMagicLinkEmailRegistrationResult } from "@autharmor/autharmor-node";
 
 const router = express.Router();
 
@@ -141,9 +141,23 @@ router.post<RegisterWithMagicLinkParams, RegisterWithMagicLinkResponse>(
             return;
         }
 
-        const validationResult = await authArmorApiClient.validateMagicLinkEmailRegistrationAsync({
-            validationToken: request.validationToken
-        });
+        let validationResult: IMagicLinkEmailRegistrationResult;
+
+        try {
+            validationResult = await authArmorApiClient.validateMagicLinkEmailRegistrationAsync({
+                validationToken: request.validationToken
+            });
+        } catch (error: unknown) {
+            if (
+                error instanceof ApiError &&
+                (error.statusCode === 401 || error.statusCode === 403)
+            ) {
+                res.status(error.statusCode);
+                return;
+            } else {
+                throw error;
+            }
+        }
 
         const authTokenData = {
             userId: validationResult.user_id,
