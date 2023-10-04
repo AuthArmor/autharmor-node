@@ -41,6 +41,8 @@ import {
     IValidateRegistrationRequest
 } from "./requests";
 import { TokenAcquisitionError } from "./errors/TokenAcquisitionError";
+import { ICredential } from "./models/ICredential";
+import { IUserCredentialsList } from "./models/IUserCredentialsList";
 
 const blankUserId = "00000000-0000-0000-0000-000000000000";
 
@@ -589,8 +591,110 @@ export class AuthArmorApiClient {
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
         return await this.fetchAsync<IAuthHistory>(
-            `/users/${blankUserId}/auth_history?${usernameQuery}&${pagingQuery}`,
+            `/users/${encodeURIComponent(
+                blankUserId
+            )}/auth_history?${usernameQuery}&${pagingQuery}`,
             "get"
+        );
+    }
+
+    public async getUserCredentialsAsync(
+        userId: string,
+        pagingOptions: IPagingRequest<ICredential>
+    ): Promise<IUserCredentialsList> {
+        const pagingQuery = this.getPagingQuery(pagingOptions);
+
+        return await this.fetchAsync<IUserCredentialsList>(
+            `/users/${encodeURIComponent(userId)}/credentials?${pagingQuery}`
+        );
+    }
+
+    public async getUserCredentialsByUsernameAsync(
+        username: string,
+        pagingOptions: IPagingRequest<ICredential>
+    ): Promise<IUserCredentialsList> {
+        const usernameQuery = this.getUsernameQuery(username);
+        const pagingQuery = this.getPagingQuery(pagingOptions);
+
+        return await this.fetchAsync<IUserCredentialsList>(
+            `/users/${encodeURIComponent(blankUserId)}/credentials?${usernameQuery}&${pagingQuery}`
+        );
+    }
+
+    public async getUserCredentialByIdAsync(
+        userId: string,
+        credentialId: string
+    ): Promise<ICredential> {
+        return await this.fetchAsync<ICredential>(
+            `/users/${encodeURIComponent(userId)}/credentials/${encodeURIComponent(credentialId)}`
+        );
+    }
+
+    public async getUserCredentialByIdByUsernameAsync(
+        username: string,
+        credentialId: string
+    ): Promise<ICredential> {
+        const usernameQuery = this.getUsernameQuery(username);
+
+        return await this.fetchAsync<ICredential>(
+            `/users/${encodeURIComponent(blankUserId)}/credentials/${encodeURIComponent(
+                credentialId
+            )}?${usernameQuery}`
+        );
+    }
+
+    public async getUserCredentialsForAuthMethodAsync(
+        userId: string,
+        authMethod: "authenticator" | "webauthn" | "magiclink_email",
+        pagingOptions: IPagingRequest<ICredential>
+    ): Promise<IUserCredentialsList> {
+        const pagingQuery = this.getPagingQuery(pagingOptions);
+
+        return await this.fetchAsync<IUserCredentialsList>(
+            `/users/${encodeURIComponent(userId)}/credentials/${encodeURIComponent(
+                authMethod
+            )}?${pagingQuery}`
+        );
+    }
+
+    public async getUserCredentialsForAuthMethodByUsernameAsync(
+        username: string,
+        authMethod: "authenticator" | "webauthn" | "magiclink_email",
+        pagingOptions: IPagingRequest<ICredential>
+    ): Promise<IUserCredentialsList> {
+        const usernameQuery = this.getUsernameQuery(username);
+        const pagingQuery = this.getPagingQuery(pagingOptions);
+
+        return await this.fetchAsync<IUserCredentialsList>(
+            `/users/${encodeURIComponent(blankUserId)}/credentials/${encodeURIComponent(
+                authMethod
+            )}?${usernameQuery}&${pagingQuery}`
+        );
+    }
+
+    public async disableUserCredentialAsync(
+        userId: string,
+        credentialId: string
+    ): Promise<ICredential> {
+        return await this.fetchAsync<ICredential>(
+            `/users/${encodeURIComponent(userId)}/credentials/${encodeURIComponent(
+                credentialId
+            )}/disable`,
+            "post"
+        );
+    }
+
+    public async disableUserCredentialByUsernameAsync(
+        username: string,
+        credentialId: string
+    ): Promise<ICredential> {
+        const usernameQuery = this.getUsernameQuery(username);
+
+        return await this.fetchAsync<ICredential>(
+            `/users/${encodeURIComponent(blankUserId)}/credentials/${encodeURIComponent(
+                credentialId
+            )}/disable?${usernameQuery}`,
+            "post"
         );
     }
 
