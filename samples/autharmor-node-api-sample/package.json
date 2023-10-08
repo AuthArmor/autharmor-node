@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "main": "src/index.ts",
     "scripts": {
-        "start": "ts-node src/index.ts",
+        "start": "node dist/index.js",
         "dev": "nodemon src/index.ts",
         "build": "tsc",
         "format": "prettier --ignore-path .gitignore -w \"src/**/*.{js,ts,json,css,tsx,jsx}\"",
@@ -33,7 +33,6 @@
         "@types/node": "^20.2.5",
         "nodemon": "^3.0.1",
         "prettier": "^2.8.8",
-        "ts-node": "^10.9.1",
         "typescript": "^5.0.4"
     }
 }
