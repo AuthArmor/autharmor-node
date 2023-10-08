@@ -37,7 +37,6 @@ import {
     IUpdateMagicLinkEmailForUserRequest,
     IUpdateUserRequest,
     IValidateAuthenticationRequest,
-    IValidateMagicLinkEmailRegistrationRequest,
     IValidateRegistrationRequest
 } from "./requests";
 import { TokenAcquisitionError } from "./errors/TokenAcquisitionError";
@@ -510,25 +509,13 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async validateMagicLinkEmailRegistrationAsync({
-        validationToken,
-        ipAddress = null,
-        userAgent = null
-    }: IValidateMagicLinkEmailRegistrationRequest): Promise<IMagicLinkEmailRegistrationResult> {
-        return await this.fetchAsync("/users/registrations/magiclink_email/validate", "post", {
-            registration_validation_token: validationToken,
-            ip_address: ipAddress,
-            user_agent: userAgent
-        });
-    }
-
-    public async validateRegistrationAsync<TAuthMethod extends "authenticator" | "webauthn">(
+    public async validateRegistrationAsync<TAuthMethod extends "authenticator" | "webauthn" | "magiclink_email">(
         authMethod: TAuthMethod,
         registrationId: string,
         { validationToken }: IValidateRegistrationRequest
     ): Promise<RegistrationResultsByAuthenticationMethod[TAuthMethod]> {
         return await this.fetchAsync<RegistrationResultsByAuthenticationMethod[TAuthMethod]>(
-            `/users/${encodeURIComponent(authMethod)}/registrations/${encodeURIComponent(
+            `/users/registrations/${encodeURIComponent(authMethod)}/${encodeURIComponent(
                 registrationId
             )}/validate`,
             "post",
