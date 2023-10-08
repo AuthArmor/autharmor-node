@@ -67,7 +67,7 @@ stages:
               artifact: autharmor-node-api-sample-bundle
             - task: AzureWebApp@1
               inputs:
-                azureSubscription: 'Auth Armor - Production'
+                azureSubscription: 'Auth Armor Azure Prod Subscription'
                 appType: 'webAppLinux'
                 appName: 'demo-wa-node-backend-sdk-aarmor'
                 resourceGroupName: 'RG-AARMOR-WEBAPP-DEMOS'
