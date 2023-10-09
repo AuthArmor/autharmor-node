@@ -1,7 +1,7 @@
 import express from "express";
 import { createToken } from "../features/auth";
 import { authArmorApiClient } from "../features/authArmor";
-import { ApiError, IMagicLinkEmailRegistrationResult } from "@autharmor/autharmor-node";
+import { ApiError } from "@autharmor/autharmor-node";
 
 const router = express.Router();
 
@@ -67,7 +67,7 @@ type RegisterParams = {};
 
 type RegisterRequest = {
     registrationId: string;
-    authenticationMethod: "authenticator" | "webAuthn";
+    authenticationMethod: "authenticator" | "webAuthn" | "magicLinkEmail";
     validationToken: string;
 };
 
@@ -89,7 +89,8 @@ router.post<RegisterParams, RegisterResponse>("/register", async (req, res) => {
 
     const authenticationMethodMapping = {
         authenticator: "authenticator",
-        webAuthn: "webauthn"
+        webAuthn: "webauthn",
+        magicLinkEmail: "magiclink_email"
     } as const;
 
     let registrationResult;
@@ -120,54 +121,5 @@ router.post<RegisterParams, RegisterResponse>("/register", async (req, res) => {
 
     res.json({ token });
 });
-
-type RegisterWithMagicLinkParams = {};
-
-type RegisterWithMagicLinkRequest = {
-    validationToken: string;
-};
-
-type RegisterWithMagicLinkResponse = {
-    token: string;
-};
-
-router.post<RegisterWithMagicLinkParams, RegisterWithMagicLinkResponse>(
-    "/register-magic-link",
-    async (req, res) => {
-        const request = req.body as RegisterWithMagicLinkRequest;
-
-        if (typeof request.validationToken !== "string") {
-            res.status(400);
-            return;
-        }
-
-        let validationResult: IMagicLinkEmailRegistrationResult;
-
-        try {
-            validationResult = await authArmorApiClient.validateMagicLinkEmailRegistrationAsync({
-                validationToken: request.validationToken
-            });
-        } catch (error: unknown) {
-            if (
-                error instanceof ApiError &&
-                (error.statusCode === 401 || error.statusCode === 403)
-            ) {
-                res.status(error.statusCode);
-                return;
-            } else {
-                throw error;
-            }
-        }
-
-        const authTokenData = {
-            userId: validationResult.user_id,
-            username: validationResult.username
-        };
-
-        const token = createToken(authTokenData);
-
-        res.json({ token });
-    }
-);
 
 export default router;
