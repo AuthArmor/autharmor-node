@@ -30,7 +30,7 @@ stages:
         name: envFile
         displayName: 'Download development environment file'
         inputs:
-          secureFile: 'autharmor-sdk.environment.development.ts'
+          secureFile: 'autharmor-node.environment.development.ts'
 
       - script: |
           rm $(System.DefaultWorkingDirectory)/src/environment/environment.ts
