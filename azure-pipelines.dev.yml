@@ -43,7 +43,7 @@ stages:
             const
               fs = require('fs'),
               pkg = require('./package.json'),
-              npkg = { ...pkg, version: pkg.version + '.$(Build.SourceBranchName)-' + '$(Build.SourceVersion)'.slice(0, 8) };
+              npkg = { ...pkg, version: pkg.version + '-$(Build.SourceBranchName).' + '$(Build.SourceVersion)'.slice(0, 8) };
             fs.writeFileSync('package.json', JSON.stringify(npkg, undefined, 4));
           " | node
         displayName: 'Append development marker to package version'
