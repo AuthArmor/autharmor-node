@@ -1,6 +1,6 @@
 {
     "name": "@autharmor/autharmor-node",
-    "version": "4.0.0-alpha.9",
+    "version": "4.0.0-rc.1",
     "type": "module",
     "source": "src/index.ts",
     "types": "./dist/types/index.d.ts",
