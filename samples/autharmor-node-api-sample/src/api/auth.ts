@@ -9,7 +9,7 @@ type LoginParams = {};
 
 type LoginRequest = {
     requestId: string;
-    authenticationMethod: "authenticator" | "magicLinkEmail" | "webAuthn";
+    authenticationMethod: "authenticator" | "magicLinkEmail" | "passkey";
     validationToken: string;
 };
 
@@ -31,7 +31,7 @@ router.post<LoginParams, LoginResponse>("/login", async (req, res) => {
 
     const authenticationMethodMapping = {
         authenticator: "authenticator",
-        webAuthn: "webauthn",
+        passkey: "webauthn",
         magicLinkEmail: "magiclink_email"
     } as const;
 
@@ -67,7 +67,7 @@ type RegisterParams = {};
 
 type RegisterRequest = {
     registrationId: string;
-    authenticationMethod: "authenticator" | "webAuthn" | "magicLinkEmail";
+    authenticationMethod: "authenticator" | "passkey" | "magicLinkEmail";
     validationToken: string;
 };
 
@@ -89,7 +89,7 @@ router.post<RegisterParams, RegisterResponse>("/register", async (req, res) => {
 
     const authenticationMethodMapping = {
         authenticator: "authenticator",
-        webAuthn: "webauthn",
+        passkey: "webauthn",
         magicLinkEmail: "magiclink_email"
     } as const;
 
