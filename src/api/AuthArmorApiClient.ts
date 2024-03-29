@@ -18,7 +18,6 @@ import {
     IWebAuthnUserRegistration,
     IRegistrationResult,
     IMagicLinkRegistration,
-    IMagicLinkEmailRegistrationResult,
     RegistrationResultsByAuthenticationMethod,
     IApiError
 } from "./models";
@@ -294,7 +293,7 @@ export class AuthArmorApiClient {
         }: IStartWebAuthnRegistrationRequest
     ) {
         return await this.fetchAsync<IWebAuthnUserRegistration>(
-            `/users/${encodeURIComponent(userId)}/webauthn/register/start`,
+            `/users/${encodeURIComponent(userId)}/registrations/webauthn/start`,
             "post",
             {
                 webauthn_client_id: webAuthnClientId,
@@ -315,7 +314,7 @@ export class AuthArmorApiClient {
         }: IFinishWebAuthnRegistrationRequest
     ): Promise<IRegistrationResult> {
         return await this.fetchAsync<IRegistrationResult>(
-            `/users/${encodeURIComponent(userId)}/webauthn/registrations/${encodeURIComponent(
+            `/users/${encodeURIComponent(userId)}/registrations/webauthn/${encodeURIComponent(
                 registrationId
             )}/finish`,
             "post",
@@ -339,7 +338,7 @@ export class AuthArmorApiClient {
         const usernameQuery = this.getUsernameQuery(username);
 
         return await this.fetchAsync<IWebAuthnUserRegistration>(
-            `/users/${blankUserId}/webauthn/register/start?${usernameQuery}`,
+            `/users/${blankUserId}/registrations/webauthn/start?${usernameQuery}`,
             "post",
             {
                 webauthn_client_id: webAuthnClientId,
@@ -362,7 +361,7 @@ export class AuthArmorApiClient {
         const usernameQuery = this.getUsernameQuery(username);
 
         return await this.fetchAsync<IRegistrationResult>(
-            `/users/${blankUserId}/webauthn/registrations/${encodeURIComponent(
+            `/users/${blankUserId}/registrations/webauthn/${encodeURIComponent(
                 registrationId
             )}/finish?${usernameQuery}`,
             "post",
@@ -415,7 +414,7 @@ export class AuthArmorApiClient {
         }: IStartMagicLinkEmailRegistrationRequest
     ): Promise<IMagicLinkRegistration> {
         return await this.fetchAsync<IMagicLinkRegistration>(
-            `/users/${encodeURIComponent(userId)}/magiclink_email/register/start`,
+            `/users/${encodeURIComponent(userId)}/registrations/magiclink_email/start`,
             "post",
             {
                 email_address: emailAddress,
@@ -446,7 +445,7 @@ export class AuthArmorApiClient {
         const usernameQuery = this.getUsernameQuery(username);
 
         return await this.fetchAsync<IMagicLinkRegistration>(
-            `/users/${blankUserId}/magiclink_email/register/start?${usernameQuery}`,
+            `/users/${blankUserId}/registrations/magiclink_email/start?${usernameQuery}`,
             "post",
             {
                 email_address: emailAddress,
