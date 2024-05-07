@@ -31,18 +31,18 @@
         "typecheck": "tsc --noEmit"
     },
     "devDependencies": {
-        "@babel/preset-env": "^7.24.3",
+        "@babel/preset-env": "^7.24.5",
         "@babel/preset-typescript": "^7.24.1",
         "@rollup/plugin-babel": "^6.0.4",
         "@rollup/plugin-commonjs": "^25.0.7",
         "@rollup/plugin-node-resolve": "^15.2.3",
-        "@types/node": "^20.11.30",
+        "@types/node": "^20.12.10",
         "prettier": "^3.2.5",
-        "rollup": "^4.13.2",
+        "rollup": "^4.17.2",
         "tslib": "^2.6.2",
-        "typescript": "^5.4.3"
+        "typescript": "^5.4.5"
     },
     "dependencies": {
-        "undici": "^6.10.2"
+        "undici": "^6.16.0"
     }
 }
