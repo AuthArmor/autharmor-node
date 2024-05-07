@@ -19,7 +19,8 @@ import {
     IRegistrationResult,
     IMagicLinkRegistration,
     RegistrationResultsByAuthenticationMethod,
-    IApiError
+    IApiError,
+    IRegistrationInfo
 } from "./models";
 import { ApiError } from "./errors";
 import {
@@ -205,6 +206,12 @@ export class AuthArmorApiClient {
         const pagingQuery = this.getPagingQuery(pagingOptions);
 
         return await this.fetchAsync<IUsersList>(`/users?${filterParams}&${pagingQuery}`, "get");
+    }
+
+    public async getRegistrationInfoAsync(registrationId: string): Promise<IRegistrationInfo> {
+        return await this.fetchAsync<IRegistrationInfo>(
+            `/users/registrations/${encodeURIComponent(registrationId)}`
+        );
     }
 
     public async startAuthenticatorUserRegistrationAsync({
@@ -508,7 +515,9 @@ export class AuthArmorApiClient {
         );
     }
 
-    public async validateRegistrationAsync<TAuthMethod extends "authenticator" | "webauthn" | "magiclink_email">(
+    public async validateRegistrationAsync<
+        TAuthMethod extends "authenticator" | "webauthn" | "magiclink_email"
+    >(
         authMethod: TAuthMethod,
         registrationId: string,
         { validationToken }: IValidateRegistrationRequest

@@ -7,6 +7,7 @@ export * from "./IAuthHistory";
 export * from "./IAuthInfo";
 export * from "./IAuthMethod";
 export * from "./IAuthTokenInfo";
+export * from "./IRegistrationInfo";
 export * from "./IMagicLinkRegistration";
 export * from "./IOriginLocationData";
 export * from "./IRegistrationResult";
