@@ -15,3 +15,5 @@ export * from "./ISecureSignedMessage";
 export * from "./IUserProfile";
 export * from "./IUsersList";
 export * from "./IWebAuthnUserRegistration";
+export * from "./AuthRequestStatusId"
+export * from "./RegistrationRequestStatusCode"
