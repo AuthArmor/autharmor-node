@@ -220,7 +220,7 @@ export class AuthArmorApiClient {
         revokePreviousInvites = false
     }: IStartAuthenticatorUserRegistrationRequest): Promise<IAuthenticatorUserRegistration> {
         return await this.fetchAsync<IAuthenticatorUserRegistration>(
-            `/users/authenticator/register/start`,
+            `/users/registrations/authenticator/start`,
             "post",
             {
                 username,
@@ -234,7 +234,7 @@ export class AuthArmorApiClient {
         userId: string
     ): Promise<IAuthenticatorUserRegistration> {
         return await this.fetchAsync<IAuthenticatorUserRegistration>(
-            `/users/${encodeURIComponent(userId)}/authenticator/register/start`,
+            `/users/${encodeURIComponent(userId)}/registrations/authenticator/start`,
             "post"
         );
     }
@@ -245,7 +245,7 @@ export class AuthArmorApiClient {
         const usernameQuery = this.getUsernameQuery(username);
 
         return await this.fetchAsync<IAuthenticatorUserRegistration>(
-            `/users/${blankUserId}/authenticator/register/start?${usernameQuery}`,
+            `/users/${blankUserId}/registrations/authenticator/start?${usernameQuery}`,
             "post"
         );
     }
@@ -258,7 +258,7 @@ export class AuthArmorApiClient {
         timeoutSeconds = null
     }: IStartWebAuthnUserRegistrationRequest): Promise<IWebAuthnUserRegistration> {
         return await this.fetchAsync<IWebAuthnUserRegistration>(
-            "/users/webauthn/register/start",
+            "/users/registrations/webauthn/start",
             "post",
             {
                 username,
@@ -280,7 +280,7 @@ export class AuthArmorApiClient {
         }: IFinishWebAuthnRegistrationRequest
     ): Promise<IRegistrationResult> {
         return await this.fetchAsync<IRegistrationResult>(
-            `/users/webauthn/registrations/${encodeURIComponent(registrationId)}/finish`,
+            `/users/registrations/webauthn/${encodeURIComponent(registrationId)}/finish`,
             "post",
             {
                 aa_sig: authArmorSignature,
@@ -392,7 +392,7 @@ export class AuthArmorApiClient {
         userAgent = null
     }: IStartMagicLinkEmailRegistrationRequest): Promise<IMagicLinkRegistration> {
         return await this.fetchAsync<IMagicLinkRegistration>(
-            "/users/magiclink_email/register/start",
+            "/users/registrations/magiclink_email/start",
             "post",
             {
                 email_address: emailAddress,
